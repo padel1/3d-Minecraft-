@@ -1,4 +1,4 @@
-from scene1 import *
+from scene import Scene
 
 
 if __name__ == '__main__':
