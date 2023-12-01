@@ -27,7 +27,7 @@ class Scene:
         self.cubes = [Cube((78, -150, -15), 0.3, textures8["sand"]),]
 
         # move
-        self.i_walk=0
+        self.i_walk = 0
         self.acceleration = 0
         self.x = 0
         self.sensitivity = 0.005
@@ -35,11 +35,11 @@ class Scene:
         # mouse
         self.mouse_button_state = pygame.mouse.get_pressed()
         self.mouse_button_timer = 0
-        self.mouse_button_delay = 100  
+        self.mouse_button_delay = 100
         self.mouse_button_down = False
         # ground
         self.ground = generate_ground()
-        
+
         self.ground_under_player = -2
         # tools
         self.scene = Scenes.loading
@@ -47,10 +47,13 @@ class Scene:
 
         self.mouse_button_down = False
         self.hovered_polygon = None
+        self.sorted_cubes = None
+
     def handle_input(self):
 
         mouse_state = pygame.mouse.get_pressed()
         clicked = [p - s for p, s in zip(mouse_state, self.mouse_button_state)]
+
         self.mouse_button_state = mouse_state
 
         if clicked[0] == 1:  # Left mouse button pressed
@@ -62,55 +65,52 @@ class Scene:
             pygame.time.set_timer(pygame.USEREVENT, 0)  # Stop the timer
             self.mouse_button_down = False
 
-        if  self.mouse_button_down:
-
+        if self.mouse_button_down:
             forward_vector = np.array([
-                np.sin(self.camera.angle_h),
+                np.sin(self.camera.angle_h) * np.cos(self.camera.angle_v),
                 -np.sin(self.camera.angle_v),
-                np.cos(self.camera.angle_h),
+                np.cos(self.camera.angle_h) * np.cos(self.camera.angle_v),
             ])
-            intersection_point, intersected_polygon = self.get_ground_intersection(forward_vector)
-
+            intersection_point, intersected_polygon = self.get_ground_intersection(
+                forward_vector)
 
             self.mouse_button_down = True
 
             # Store the intersected polygon for hover effect
             self.hovered_polygon = intersected_polygon
-                
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-        is_inside_cube = any(
-            cube.center[1] - cube.size / 2
-            < self.camera.position[1] + 5
-            < cube.center[1] + cube.size / 2
-            and cube.center[0] - cube.size / 2
-            < self.camera.position[0]
-            < cube.center[0] + cube.size / 2
-            and cube.center[2] - cube.size / 2
-            < self.camera.position[2]
-            < cube.center[2] + cube.size / 2
-            for cube in self.cubes
-        )
-        if is_inside_cube:
-            self.camera.position[1] = -8
-            self.ground_under_player = self.camera.position[1]
-        else:
-            self.ground_under_player = -2
+        # is_inside_cube = any(
+        #     cube.center[1] - cube.size / 2
+        #     < self.camera.position[1] + 5
+        #     < cube.center[1] + cube.size / 2
+        #     and cube.center[0] - cube.size / 2
+        #     < self.camera.position[0]
+        #     < cube.center[0] + cube.size / 2
+        #     and cube.center[2] - cube.size / 2
+        #     < self.camera.position[2]
+        #     < cube.center[2] + cube.size / 2
+        #     for cube in self.cubes
+        # )
+        # if is_inside_cube:
+        #     self.camera.position[1] = -5
+        #     self.ground_under_player = self.camera.position[1]
+        # else:
+        #     self.ground_under_player = -2
 
         mouse_rel = pygame.mouse.get_rel()
         pygame.mouse.set_pos(half_width, half_height)
         self.camera.angle_h += self.sensitivity * mouse_rel[0]
         self.camera.angle_v += self.sensitivity * (-mouse_rel[1])
+
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
             pygame.quit()
             sys.exit()
-        if keys[pygame.K_SPACE]:
-            pass
 
         if keys[pygame.K_p]:
             pygame.mouse.set_visible(True)
@@ -133,54 +133,39 @@ class Scene:
             new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
             new_position[0] -= MOVEMENT_SPEED * np.cos(self.camera.angle_h)
             if not self.check_collision(new_position):
-
                 self.camera.position = new_position
-        if keys[pygame.K_d]:
-            self.camera.position[2] -= MOVEMENT_SPEED * \
-                np.sin(self.camera.angle_h)
-            self.camera.position[0] += MOVEMENT_SPEED * \
-                np.cos(self.camera.angle_h)
-        if keys[pygame.K_w]:
 
+        if keys[pygame.K_d]:
+            new_position = self.camera.position.copy()
+            new_position[2] -= MOVEMENT_SPEED * \
+                np.sin(self.camera.angle_h)
+            new_position[0] += MOVEMENT_SPEED * \
+                np.cos(self.camera.angle_h)
+
+            if not self.check_collision(new_position):
+                self.camera.position = new_position
+        if keys[pygame.K_w]:
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
             new_position[0] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
-
             if not self.check_collision(new_position):
-                
                 self.camera.position = new_position
-            # self.sound.walk[self.i_walk%4].play()
-            # self.i_walk+=1
-            
+            self.sound.walk[self.i_walk % len(self.sound.walk)].set_volume(.1)
+            self.sound.walk[self.i_walk % len(self.sound.walk)].play()
+            self.i_walk += 1
             # self.sound.walk.play()
         if keys[pygame.K_s]:
-            self.camera.position[2] -= MOVEMENT_SPEED * \
+            new_position = self.camera.position.copy()
+            new_position[2] -= MOVEMENT_SPEED * \
                 np.cos(self.camera.angle_h)
-            self.camera.position[0] -= MOVEMENT_SPEED * \
+            new_position[0] -= MOVEMENT_SPEED * \
                 np.sin(self.camera.angle_h)
-        if keys[pygame.K_f]:
-            if self.scene == Scenes.game:
-                forward_vector = np.array([
-                    np.sin(self.camera.angle_h),
-                    -np.sin(self.camera.angle_v),
-                    np.cos(self.camera.angle_h),
-                ])
+            if not self.check_collision(new_position):
+                self.camera.position = new_position
 
-                # Get intersection point and polygon
-                intersection_point, intersected_polygon = self.get_ground_intersection(forward_vector)
-
-                # Set flag to indicate mouse button down
-                self.mouse_button_down = True
-
-                # Store the intersected polygon for hover effect
-                self.hovered_polygon = intersected_polygon
-       
         if keys[pygame.K_r]:
             self.cubes = initial_cubes
-        if keys[pygame.K_q]:
-            self.camera.position[1] -= 2
-        if keys[pygame.K_e]:
-            self.camera.position[1] += MOVEMENT_SPEED
+
         if keys[pygame.K_LEFT]:
             self.selected_texture_index -= 1
             pygame.time.delay(100)
@@ -188,22 +173,33 @@ class Scene:
             self.selected_texture_index += 1
             pygame.time.delay(100)
 
-        if self.camera.position[1] < self.ground_under_player:
-            self.acceleration += 0.09
-            self.camera.position[1] += self.acceleration
-        else:
-            self.acceleration = 0
+        if keys[pygame.K_q]:
+            new_position = self.camera.position.copy()
+            new_position[1] -= 2
+            if not self.check_collision(new_position):
+                self.camera.position = new_position
+        if keys[pygame.K_e]:
+            new_position = self.camera.position.copy()
+            new_position[1] += 2
+            if not self.check_collision(new_position):
+                self.camera.position = new_position
+
+        # if self.camera.position[1] < self.ground_under_player:
+        #     self.acceleration += 0.1
+        #     self.camera.position[1] += self.acceleration
+        # else:
+        #     self.acceleration = 0
 
     def check_collision(self, new_position):
         player_point = np.array(
             [new_position[0], new_position[1], new_position[2]])
 
         player_width = 0.5
-        player_height = 2.5
+        player_height = 1.5
 
         for cube in self.cubes:
             cube_center = np.array(cube.center)
-            cube_size = cube.size
+            cube_size = cube.size+2
 
             if (
                 cube_center[0] - cube_size < player_point[0] + player_width
@@ -213,16 +209,15 @@ class Scene:
                 and cube_center[2] - cube_size < player_point[2] + player_width
                 and cube_center[2] + cube_size > player_point[2] - player_width
             ):
-             
+
                 return True
 
-       
         return False
 
     def draw_ground(self, rotate_h, rotate_v):
 
         for i, polygon in enumerate(self.ground):
-            
+
             new_points = polygon - self.camera.position
             transformed_points = np.dot(new_points, rotate_h)
             transformed_points = np.dot(transformed_points, rotate_v)
@@ -237,63 +232,66 @@ class Scene:
             if at_least_one_point_in_view and all(
                 point[-1] > self.camera.f for point in tra
             ):
+
                 if i == 20 or i == 30 or i == 44:
                     pygame.draw.polygon(
                         self.screen, (255, 255, 255), points_2d)
                 else:
-                    base_color = (np.round(255 - i / 500), np.round(i / 500) // 2, 5)
+                    base_color = (np.round(i / 2), np.round(i) // 2, 5)
                     hover_color = tuple(min(c + 50, 255) for c in base_color)
                     if np.array_equal(polygon, self.hovered_polygon) and self.mouse_button_down:
                         pygame.draw.polygon(
-                                self.screen, hover_color, points_2d)
-                    else :
+                            self.screen, hover_color, points_2d)
+                    else:
                         pygame.draw.polygon(
-                                self.screen, base_color, points_2d)
+                            self.screen, base_color, points_2d)
                 # draw_polygon(self.screen, points_2d, pygame.image.load(
                 #     r"assets\bedrock.png"), 1)
-    
 
     def get_ground_intersection(self, ray_direction):
-       
-        polygon=1,self.ground[1]
-      
-        if self.is_ray_intersects_polygon(ray_direction, polygon[1]):
-          
+
+        polygon = self.ground[1]
+
+        if self.is_ray_intersects_polygon(ray_direction, polygon):
+
+            normal = np.cross(polygon[1] - polygon[0],
+                              polygon[2] - polygon[0])
+
             intersection_point = ray_plane_intersection(
                 self.camera.position, ray_direction,
-                np.cross(polygon[1][1] - polygon[1][0],
-                            polygon[1][2] - polygon[1][0]),
-                polygon[1][0]
+                normal,
+                polygon[0]
             )
-            
+
             for polygon in self.ground:
                 if point_in_polygon(intersection_point, polygon):
-                   
-                    return intersection_point,polygon
 
+                    return intersection_point, polygon
 
-
-        return None,None
+        return None, None
 
     def is_ray_intersects_polygon(self, ray_direction, polygon_points):
-        
-        v0, v1, v2,v4 = polygon_points
+
+        v0, v1, v2, v4 = polygon_points
 
         # Calculate the normal of the polygon
         normal = np.cross(v1 - v0, v2 - v0)
 
         # Check if the ray is parallel to the plane of the polygon
         dot_product = np.dot(normal, ray_direction)
-        if np.abs(dot_product) < 1e-6:
+
+        if dot_product > -1e-6:
             return False
 
         return True
 
     def get_intersection_cube(self, origin, direction):
-        for cube in self.cubes:
+        
+        
+
+        for cube in reversed(self.sorted_cubes):
             intersection_point = cube.ray_intersection(origin, direction)
             if intersection_point is not None:
-                
                 return cube
         return None
 
@@ -318,7 +316,7 @@ class Scene:
             # if (i + 1) % self.textures_per_row == 0:
             #     current_x = self.inventory_bar_position[0]
             #     current_y += self.texture_slot_size
-   
+
     def render(self):
         self.screen.fill((33, 50, 211))
 
@@ -332,12 +330,10 @@ class Scene:
         sun_center = sun_center - self.camera.position
         sun_center = np.dot(sun_center, rotate_h)
         sun_center = np.dot(sun_center, rotate_v)
-
         self.draw_ground(rotate_h, rotate_v)
-
-        sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
-
-        for cube in sorted_cubes:
+        # sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
+        self.sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
+        for cube in self.sorted_cubes:
             points = cube.points
 
             new_points = points - self.camera.position
@@ -345,6 +341,7 @@ class Scene:
             transformed_points = np.dot(transformed_points, rotate_v)
 
             surfaces = get_surfaces(transformed_points)
+
             transformed_points = transform_points(
                 transformed_points, self.camera.f)
             points_2d = np.dot(self.camera.K, transformed_points.T).T
@@ -379,9 +376,9 @@ class Scene:
 
         bg_idx = 1
         i = 0
-        
+
         while True:
- 
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -390,16 +387,18 @@ class Scene:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
-                
-                
+
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     x, y = pygame.mouse.get_pos()
 
                     if self.scene == Scenes.game:
+
                         forward_vector = np.array([
-                            np.sin(self.camera.angle_h),
+                            np.sin(self.camera.angle_h) *
+                            np.cos(self.camera.angle_v),
                             -np.sin(self.camera.angle_v),
-                            np.cos(self.camera.angle_h),
+                            np.cos(self.camera.angle_h) *
+                            np.cos(self.camera.angle_v),
                         ])
 
                         intersection_cube = self.get_intersection_cube(
@@ -407,35 +406,62 @@ class Scene:
                         )
 
                         if intersection_cube:
+
                             # Create a new cube above the pointed cube
+                            # new_cube_position = intersection_cube.center + \
+                            #     np.array([0, -CUBE_SIZE, 0])
+                            # new_cube = Cube(new_cube_position,
+                            #                 CUBE_SIZE, textures8["sand"])
+                            # new_cube.texture = textures8[
+                            #     list(textures8.keys())[
+                            #         self.selected_texture_index]
+                            # ]
+                            # self.sound.pick.play()
+                            # self.cubes.append(new_cube)
+                            # self.mouse_button_down = False
+                            # self.hovered_polygon = None
+                            face_normals = intersection_cube.get_face_normals()
+                            closest_face_index = np.argmax(
+                                np.dot(face_normals, forward_vector))
+
+                            # Define offsets for each face
+                            face_offsets = [
+                                np.array([0, -CUBE_SIZE, 0]),   # Top face
+                                np.array([-CUBE_SIZE, 0, 0]),   # Right face
+                                np.array([0, CUBE_SIZE, 0]),  # Bottom face
+                                np.array([CUBE_SIZE, 0, 0]),  # Left face
+                                np.array([0, 0, -CUBE_SIZE]),   # Front face
+                                np.array([0, 0, CUBE_SIZE])   # Back face
+                            ]
+
+                            # Use the offset corresponding to the closest face to place the new cube
                             new_cube_position = intersection_cube.center + \
-                                np.array([0, -CUBE_SIZE, 0])
+                                face_offsets[closest_face_index]
+
                             new_cube = Cube(new_cube_position,
                                             CUBE_SIZE, textures8["sand"])
-                            new_cube.texture = textures8[
-                                list(textures8.keys())[
-                                    self.selected_texture_index]
-                            ]
+                            new_cube.texture = textures8[list(textures8.keys())[
+                                self.selected_texture_index]]
                             self.sound.pick.play()
                             self.cubes.append(new_cube)
                             self.mouse_button_down = False
-                            self.hovered_polygon=None
+                            self.hovered_polygon = None
 
                         else:
 
-                            intersection_point,intersection_polygon = self.get_ground_intersection(
+                            intersection_point, intersection_polygon = self.get_ground_intersection(
                                 forward_vector)
-                            #set the position of the new polygon above the intersection polygon 
+                            # set the position of the new polygon above the intersection polygon
                             if intersection_polygon is not None:
-                                new_cube_position = np.mean(intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
-                                
+                                new_cube_position = np.mean(
+                                    intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
 
                                 new_cube = Cube(new_cube_position,
                                                 CUBE_SIZE, textures8["sand"])
-                                new_cube.texture = textures8[list(textures8.keys())[self.selected_texture_index]]
+                                new_cube.texture = textures8[list(textures8.keys())[
+                                    self.selected_texture_index]]
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
-
 
                             elif intersection_point is not None:
                                 new_cube_position = intersection_point[0]
@@ -453,15 +479,18 @@ class Scene:
                             self.sound.menu.stop()
                             self.sound.click.play()
                             self.scene = Scenes.game
-                #remove a cube using mouse button 3
+                # remove a cube using mouse button 3
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
                     x, y = pygame.mouse.get_pos()
 
                     if self.scene == Scenes.game:
+
                         forward_vector = np.array([
-                            np.sin(self.camera.angle_h),
+                            np.sin(self.camera.angle_h) *
+                            np.cos(self.camera.angle_v),
                             -np.sin(self.camera.angle_v),
-                            np.cos(self.camera.angle_h),
+                            np.cos(self.camera.angle_h) *
+                            np.cos(self.camera.angle_v),
                         ])
 
                         intersection_cube = self.get_intersection_cube(
@@ -469,8 +498,8 @@ class Scene:
                         )
 
                         if intersection_cube:
-                            # Create a new cube above the pointed cube
                             self.cubes.remove(intersection_cube)
+
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
                     self.selected_texture_index -= 1
                     if self.selected_texture_index < 0:

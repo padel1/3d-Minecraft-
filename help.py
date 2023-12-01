@@ -51,11 +51,10 @@ def transform_points(points, f):
     points_x = points[..., 0]
     points_y = points[..., 1]
     points_z = points[..., 2] - f + 0.0001
- 
+
     return np.column_stack(
         (points_x / points_z, points_y / points_z, np.ones(len(points)))
     )
-    
 
 
 def rotate_matrix_x(theta):
@@ -88,7 +87,7 @@ colors = [(255, 255, 255),
           ]
 
 
-def generate_ground(grid_size=40, step_size=CUBE_SIZE):
+def generate_ground(grid_size=20, step_size=CUBE_SIZE):
     ground = []
     for i in range(-grid_size // 2, grid_size // 2):
         for j in range(-grid_size // 2, grid_size // 2):
@@ -144,16 +143,14 @@ def ray_plane_intersection(ray_origin, ray_direction, plane_normal, plane_point)
     return intersection_point
 
 
-
 def point_in_polygon(point, polygon):
-
-    x,_,y= point
+    x, _, y = point
     n = len(polygon)
     inside = False
 
     for i in range(n):
-        x1,_,y1 = polygon[i]
-        x2,_, y2 = polygon[(i + 1) % n]
+        x1, _, y1 = polygon[i]
+        x2, _, y2 = polygon[(i + 1) % n]
 
         # Check if the point is on the edge
         if (y1 <= y < y2) or (y2 <= y < y1):
