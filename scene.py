@@ -63,10 +63,7 @@ class Scene:
             self.mouse_button_down = False
 
         if  self.mouse_button_down:
-            # Perform continuous actions here while the left mouse button is held down
-            print("Mouse button is held down!")
 
-            # Your existing code for getting intersection point and polygon
             forward_vector = np.array([
                 np.sin(self.camera.angle_h),
                 -np.sin(self.camera.angle_v),
@@ -74,15 +71,12 @@ class Scene:
             ])
             intersection_point, intersected_polygon = self.get_ground_intersection(forward_vector)
 
-                #         # Get intersection point and polygon
-                #         intersection_point, intersected_polygon = self.get_ground_intersection(forward_vector)
 
-            # Set flag to indicate mouse button down
             self.mouse_button_down = True
 
             # Store the intersected polygon for hover effect
             self.hovered_polygon = intersected_polygon
-                # Add your specific task here
+                
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -147,21 +141,17 @@ class Scene:
             self.camera.position[0] += MOVEMENT_SPEED * \
                 np.cos(self.camera.angle_h)
         if keys[pygame.K_w]:
-            # self.camera.position[2] += MOVEMENT_SPEED * \
-            #     np.cos(self.camera.angle_h)
-            # self.camera.position[0] += MOVEMENT_SPEED * \
-            #     np.sin(self.camera.angle_h)
 
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
             new_position[0] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
 
             if not self.check_collision(new_position):
-                # print("dkhal")
+                
                 self.camera.position = new_position
             # self.sound.walk[self.i_walk%4].play()
             # self.i_walk+=1
-            # print(self.camera.position)
+            
             # self.sound.walk.play()
         if keys[pygame.K_s]:
             self.camera.position[2] -= MOVEMENT_SPEED * \
@@ -223,10 +213,10 @@ class Scene:
                 and cube_center[2] - cube_size < player_point[2] + player_width
                 and cube_center[2] + cube_size > player_point[2] - player_width
             ):
-                print("Collision detected!")
+             
                 return True
 
-        print("No collision.")
+       
         return False
 
     def draw_ground(self, rotate_h, rotate_v):
@@ -261,14 +251,14 @@ class Scene:
                                 self.screen, base_color, points_2d)
                 # draw_polygon(self.screen, points_2d, pygame.image.load(
                 #     r"assets\bedrock.png"), 1)
-    # Add a new method to your Scene class
+    
 
     def get_ground_intersection(self, ray_direction):
-        # for polygon in enumerate(self.ground):
+       
         polygon=1,self.ground[1]
-        # Check if the ray intersects with the ground polygon
+      
         if self.is_ray_intersects_polygon(ray_direction, polygon[1]):
-            # Find the intersection point
+          
             intersection_point = ray_plane_intersection(
                 self.camera.position, ray_direction,
                 np.cross(polygon[1][1] - polygon[1][0],
@@ -278,7 +268,7 @@ class Scene:
             
             for polygon in self.ground:
                 if point_in_polygon(intersection_point, polygon):
-                    print("llllllllllllllllll")
+                   
                     return intersection_point,polygon
 
 
@@ -297,31 +287,13 @@ class Scene:
         if np.abs(dot_product) < 1e-6:
             return False
 
-        # # Check if the ray intersects the plane of the polygon
-        # d = -np.dot(normal, v0)
-        # t = -(np.dot(normal, self.camera.position) + d) / dot_product
-
-        # # Check if the intersection point is inside the polygon
-        # intersection_point = self.camera.position + t * ray_direction
-
-        # u = np.dot(np.cross(v1 - v0, intersection_point - v0), normal)
-        # v = np.dot(np.cross(v2 - v1, intersection_point - v1), normal)
-        # w = np.dot(np.cross(v0 - v2, intersection_point - v2), normal)
-
-        # # Normalize u, v, w
-        # u /= np.linalg.norm(np.cross(v1 - v0, v2 - v0))
-        # v /= np.linalg.norm(np.cross(v2 - v1, v0 - v1))
-        # w /= np.linalg.norm(np.cross(v0 - v2, v1 - v2))
-        # print(u,v,w)
-        # # return all(0 <= val <= 1 for val in [u, v, w])
-
         return True
 
     def get_intersection_cube(self, origin, direction):
         for cube in self.cubes:
             intersection_point = cube.ray_intersection(origin, direction)
             if intersection_point is not None:
-                print("'hi'")
+                
                 return cube
         return None
 
@@ -346,47 +318,7 @@ class Scene:
             # if (i + 1) % self.textures_per_row == 0:
             #     current_x = self.inventory_bar_position[0]
             #     current_y += self.texture_slot_size
-    # def get_ground_intersection(self, ray_direction):
-    #     for i, polygon in enumerate(self.ground):
-    #         transformed_points = transform_points(polygon - self.camera.position, self.camera.f)
-    #         points_2d = np.dot(self.camera.K, transformed_points.T).T
-
-    #         # Check if the ray intersects with the ground polygon
-    #         intersection_point, intersected_polygon = self.get_intersection_info(ray_direction, transformed_points)
-
-    #         if intersection_point is not None:
-    #             return intersection_point, intersected_polygon
-
-    #     return None, None
-
-    # def get_intersection_info(self, ray_direction, polygon_points):
-    #     # Assuming polygon_points is in 3D, and the ray is a vector in the same space
-    #     v0, v1, v2,v4 = polygon_points
-
-    #     # Calculate the normal of the polygon
-    #     normal = np.cross(v1 - v0, v2 - v0)
-
-    #     # Check if the ray is parallel to the plane of the polygon
-    #     if np.dot(normal, ray_direction) == 0:
-    #         return None, None
-
-    #     # Check if the ray intersects the plane of the polygon
-    #     d = -np.dot(normal, v0)
-    #     t = -(np.dot(normal, self.camera.position) + d) / np.dot(normal, ray_direction)
-
-    #     # Check if the intersection point is inside the polygon
-    #     intersection_point = self.camera.position + t * ray_direction
-
-    #     u = np.dot(np.cross(v1 - v0, intersection_point - v0), normal)
-    #     v = np.dot(np.cross(v2 - v1, intersection_point - v1), normal)
-    #     w = np.dot(np.cross(v0 - v2, intersection_point - v2), normal)
-
-    #     if all(0 <= val <= 1 for val in [u, v, w]):
-    #         intersected_polygon = polygon_points
-    #         return intersection_point, intersected_polygon
-
-    #     return intersection_point, polygon_points
-
+   
     def render(self):
         self.screen.fill((33, 50, 211))
 
@@ -458,24 +390,7 @@ class Scene:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
-                # if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                #     x, y = pygame.mouse.get_pos()
-
-                #     if self.scene == Scenes.game:
-                #         forward_vector = np.array([
-                #             np.sin(self.camera.angle_h),
-                #             -np.sin(self.camera.angle_v),
-                #             np.cos(self.camera.angle_h),
-                #         ])
-
-                #         # Get intersection point and polygon
-                #         intersection_point, intersected_polygon = self.get_ground_intersection(forward_vector)
-
-                #         # Set flag to indicate mouse button down
-                #         self.mouse_button_down = True
-
-                #         # Store the intersected polygon for hover effect
-                #         self.hovered_polygon = intersected_polygon
+                
                 
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                     x, y = pygame.mouse.get_pos()
@@ -513,7 +428,7 @@ class Scene:
                             #set the position of the new polygon above the intersection polygon 
                             if intersection_polygon is not None:
                                 new_cube_position = np.mean(intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
-                                # new_cube_position[1] -= CUBE_SIZE//2
+                                
 
                                 new_cube = Cube(new_cube_position,
                                                 CUBE_SIZE, textures8["sand"])
@@ -522,16 +437,16 @@ class Scene:
                                 self.cubes.append(new_cube)
 
 
-                            # elif intersection_point is not None:
-                            #     new_cube_position = intersection_point[0]
-                            #     new_cube_position[1] -= CUBE_SIZE//2
+                            elif intersection_point is not None:
+                                new_cube_position = intersection_point[0]
+                                new_cube_position[1] -= CUBE_SIZE//2
 
-                            #     new_cube = Cube(new_cube_position,
-                            #                     CUBE_SIZE, textures8["sand"])
-                            #     new_cube.texture = textures8[list(textures8.keys())[
-                            #         self.selected_texture_index]]
-                            #     self.sound.pick.play()
-                            #     self.cubes.append(new_cube)
+                                new_cube = Cube(new_cube_position,
+                                                CUBE_SIZE, textures8["sand"])
+                                new_cube.texture = textures8[list(textures8.keys())[
+                                    self.selected_texture_index]]
+                                self.sound.pick.play()
+                                self.cubes.append(new_cube)
 
                     if self.scene == Scenes.menu:
                         if preview_button_rect.collidepoint((x, y)):

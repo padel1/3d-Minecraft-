@@ -143,13 +143,7 @@ def ray_plane_intersection(ray_origin, ray_direction, plane_normal, plane_point)
 
     return intersection_point
 
-# Define a function to calculate the signed volume of a tetrahedron formed by four 3D points
-def signed_volume(a, b, c, d):
-  return (a[0] - d[0]) * ((b[1] - d[1]) * (c[2] - d[2]) - (c[1] - d[1]) * (b[2] - d[2])) - \
-         (a[1] - d[1]) * ((b[0] - d[0]) * (c[2] - d[2]) - (c[0] - d[0]) * (b[2] - d[2])) + \
-         (a[2] - d[2]) * ((b[0] - d[0]) * (c[1] - d[1]) - (c[0] - d[0]) * (b[1] - d[1]))
 
-# Define a function to check if a point is inside a polygon using the barycentric coordinates method
 
 def point_in_polygon(point, polygon):
 
