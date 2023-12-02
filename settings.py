@@ -151,6 +151,8 @@ class Sound:
         'sounds\pick.mp3')
     menu = pygame.mixer.Sound(
         'sounds\music\menu\menu4.ogg')
+    dig = pygame.mixer.Sound(
+        r'sounds\dig\grass3.ogg')
     click = pygame.mixer.Sound(
         'sounds\gui\click_stereo1.ogg')
     walk_name = "wood"
