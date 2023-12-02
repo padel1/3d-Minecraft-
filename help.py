@@ -51,11 +51,10 @@ def transform_points(points, f):
     points_x = points[..., 0]
     points_y = points[..., 1]
     points_z = points[..., 2] - f + 0.0001
- 
+
     return np.column_stack(
         (points_x / points_z, points_y / points_z, np.ones(len(points)))
     )
-    
 
 
 def rotate_matrix_x(theta):
@@ -144,92 +143,18 @@ def ray_plane_intersection(ray_origin, ray_direction, plane_normal, plane_point)
     return intersection_point
 
 
-# # Add a new method to your Scene class
-# def get_ground_intersection(self, ray_direction):
-#     for i, polygon in enumerate(self.ground):
-#         transformed_points = transform_points(
-#             polygon - self.camera.position, self.camera.f)
- 
+def point_in_polygon(point, polygon):
+    x, _, y = point
+    n = len(polygon)
+    inside = False
 
-#         # Check if the ray intersects with the ground polygon
-#         if self.is_ray_intersects_polygon(ray_direction, transformed_points):
-#             # Find the intersection point
-#             intersection_point = ray_plane_intersection(
-#                 self.camera.position, ray_direction,
-#                 np.cross(transformed_points[1] - transformed_points[0],
-#                          transformed_points[2] - transformed_points[0]),
-#                 transformed_points[0]
-#             )
-#             return intersection_point
+    for i in range(n):
+        x1, _, y1 = polygon[i]
+        x2, _, y2 = polygon[(i + 1) % n]
 
-#     return None
+        # Check if the point is on the edge
+        if (y1 <= y < y2) or (y2 <= y < y1):
+            if x1 + (y - y1) / (y2 - y1) * (x2 - x1) > x:
+                inside = not inside
 
-# # Add another helper method
-
-
-# def is_ray_intersects_polygon(self, ray_direction, polygon_points):
-#     # Assuming polygon_points is in 3D, and the ray is a vector in the same space
-#     v0, v1, v2 = polygon_points
-
-#     # Calculate the normal of the polygon
-#     normal = np.cross(v1 - v0, v2 - v0)
-
-#     # Check if the ray is parallel to the plane of the polygon
-#     if np.dot(normal, ray_direction) == 0:
-#         return False
-
-#     # Check if the ray intersects the plane of the polygon
-#     d = -np.dot(normal, v0)
-#     t = -(np.dot(normal, self.camera.position) + d) / \
-#         np.dot(normal, ray_direction)
-
-#     # Check if the intersection point is inside the polygon
-#     intersection_point = self.camera.position + t * ray_direction
-
-#     u = np.dot(np.cross(v1 - v0, intersection_point - v0), normal)
-#     v = np.dot(np.cross(v2 - v1, intersection_point - v1), normal)
-#     w = np.dot(np.cross(v0 - v2, intersection_point - v2), normal)
-
-#     return all(0 <= val <= 1 for val in [u, v, w])
-
-
-def get_ground_intersection(self, ray_direction):
-    for i, polygon in enumerate(self.ground):
-        transformed_points = transform_points(polygon - self.camera.position, self.camera.f)
-        points_2d = np.dot(self.camera.K, transformed_points.T).T
-
-        # Check if the ray intersects with the ground polygon
-        intersection_point, intersected_polygon = self.get_intersection_info(ray_direction, transformed_points)
-
-        if intersection_point is not None:
-            return intersection_point, intersected_polygon
-
-    return None, None
-
-def get_intersection_info(self, ray_direction, polygon_points):
-    # Assuming polygon_points is in 3D, and the ray is a vector in the same space
-    v0, v1, v2 = polygon_points
-
-    # Calculate the normal of the polygon
-    normal = np.cross(v1 - v0, v2 - v0)
-
-    # Check if the ray is parallel to the plane of the polygon
-    if np.dot(normal, ray_direction) == 0:
-        return None, None
-
-    # Check if the ray intersects the plane of the polygon
-    d = -np.dot(normal, v0)
-    t = -(np.dot(normal, self.camera.position) + d) / np.dot(normal, ray_direction)
-
-    # Check if the intersection point is inside the polygon
-    intersection_point = self.camera.position + t * ray_direction
-
-    u = np.dot(np.cross(v1 - v0, intersection_point - v0), normal)
-    v = np.dot(np.cross(v2 - v1, intersection_point - v1), normal)
-    w = np.dot(np.cross(v0 - v2, intersection_point - v2), normal)
-
-    if all(0 <= val <= 1 for val in [u, v, w]):
-        intersected_polygon = polygon_points
-        return intersection_point, intersected_polygon
-
-    return None, None
+    return inside

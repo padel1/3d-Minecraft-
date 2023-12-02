@@ -103,12 +103,6 @@ bgs = {
 }
 
 
-gui = {
-    "inventory": pygame.transform.scale(pygame.image.load(r"assets\inventory.png"), (400, 50)),
-    "crosshair": pygame.image.load(r"assets\crosshair.png"),
-}
-
-
 font = pygame.font.Font("assets\main.ttf", 22)  # Default font with size 36
 
 # Function to create a button
@@ -159,8 +153,22 @@ class Sound:
         'sounds\music\menu\menu4.ogg')
     click = pygame.mixer.Sound(
         'sounds\gui\click_stereo1.ogg')
-    walk = pygame.mixer.Sound(
-        'sounds\step\grass1.ogg')
+    walk_name = "wood"
+    walk = [
+      
+        pygame.mixer.Sound(
+            f'sounds\step\{walk_name}1.ogg'),
+        pygame.mixer.Sound(
+            f'sounds\step\{walk_name}2.ogg'),
+        pygame.mixer.Sound(
+           f'sounds\step\{walk_name}3.ogg'),
+        pygame.mixer.Sound(
+            f'sounds\step\{walk_name}4.ogg'),
+        pygame.mixer.Sound(
+            f'sounds\step\{walk_name}5.ogg'),
+        pygame.mixer.Sound(
+            f'sounds\step\{walk_name}6.ogg'),
+            ]
 
 
 initial_cubes = [
