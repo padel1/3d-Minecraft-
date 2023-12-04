@@ -78,13 +78,13 @@ def rotate_matrix_y(theta):
 
 
 # ground functions:
-colors = [(255, 255, 255),
-          (255, 0, 0),
-          (0, 255, 0),
-          (0, 0, 255),
-          (255, 255, 0),
-          (255, 0, 255),
-          ]
+# colors = [(255, 255, 255),
+#           (255, 0, 0),
+#           (0, 255, 0),
+#           (0, 0, 255),
+#           (255, 255, 0),
+#           (255, 0, 255),
+#           ]
 
 
 def generate_ground(grid_size=20, step_size=CUBE_SIZE):

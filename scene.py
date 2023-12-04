@@ -24,7 +24,7 @@ class Scene:
         self.camera = Camera()
         self.clock = pygame.time.Clock()
         # cubes
-        self.cubes = [Cube((78, -150, -15), 0.3, textures8["sand"]),]
+        self.cubes = [Cube((78, -150, -15), 0.3, textures4["sand"]),]
 
         # move
         self.i_walk = 0
@@ -245,7 +245,7 @@ class Scene:
     def draw_ground(self, rotate_h, rotate_v):
 
         for i, polygon in enumerate(self.ground):
-
+            length = len(self.ground)
             new_points = polygon - self.camera.position
             transformed_points = np.dot(new_points, rotate_h)
             transformed_points = np.dot(transformed_points, rotate_v)
@@ -261,18 +261,15 @@ class Scene:
                 point[-1] > self.camera.f for point in tra
             ):
 
-                if i == 20 or i == 30 or i == 44:
+                base_color = (np.round(i*255 / length),
+                              np.round(i * 255 / length), 5)
+                hover_color = tuple(min(c + 50, 255) for c in base_color)
+                if np.array_equal(polygon, self.hovered_polygon) and self.mouse_button_down:
                     pygame.draw.polygon(
-                        self.screen, (255, 255, 255), points_2d)
+                        self.screen, hover_color, points_2d)
                 else:
-                    base_color = (np.round(i / 2), np.round(i) // 2, 5)
-                    hover_color = tuple(min(c + 50, 255) for c in base_color)
-                    if np.array_equal(polygon, self.hovered_polygon) and self.mouse_button_down:
-                        pygame.draw.polygon(
-                            self.screen, hover_color, points_2d)
-                    else:
-                        pygame.draw.polygon(
-                            self.screen, base_color, points_2d)
+                    pygame.draw.polygon(
+                        self.screen, base_color, points_2d)
                 # draw_polygon(self.screen, points_2d, pygame.image.load(
                 #     r"assets\bedrock.png"), 1)
 
@@ -329,7 +326,7 @@ class Scene:
         for i in range(self.textures_per_row):
 
             texture_image = pygame.transform.scale(
-                list(textures8.values())[i], (30, 30))
+                list(textures16.values())[i], (30, 30))
             self.screen.blit(texture_image, (x, y))
 
             if i == self.selected_texture_index:
@@ -459,8 +456,8 @@ class Scene:
                                 face_offsets[closest_face_index]
 
                             new_cube = Cube(new_cube_position,
-                                            CUBE_SIZE, textures8["sand"])
-                            new_cube.texture = textures8[list(textures8.keys())[
+                                            CUBE_SIZE, textures4["sand"])
+                            new_cube.texture = textures4[list(textures4.keys())[
                                 self.selected_texture_index]]
                             self.sound.pick.play()
                             self.cubes.append(new_cube)
@@ -477,8 +474,8 @@ class Scene:
                                     intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures8["sand"])
-                                new_cube.texture = textures8[list(textures8.keys())[
+                                                CUBE_SIZE, textures4["sand"])
+                                new_cube.texture = textures4[list(textures4.keys())[
                                     self.selected_texture_index]]
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
@@ -488,8 +485,8 @@ class Scene:
                                 new_cube_position[1] -= CUBE_SIZE//2
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures8["sand"])
-                                new_cube.texture = textures8[list(textures8.keys())[
+                                                CUBE_SIZE, textures4["sand"])
+                                new_cube.texture = textures4[list(textures4.keys())[
                                     self.selected_texture_index]]
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
@@ -502,9 +499,7 @@ class Scene:
                 # remove a cube using mouse button 3
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
                     x, y = pygame.mouse.get_pos()
-
                     if self.scene == Scenes.game:
-
                         forward_vector = np.array([
                             np.sin(self.camera.angle_h) *
                             np.cos(self.camera.angle_v),
@@ -547,9 +542,10 @@ class Scene:
                 if bg_idx > 5:
                     bg_idx = 1
             if self.scene == Scenes.game:
-
                 pygame.mouse.set_visible(False)
                 self.render()
+
+            display_fps(self.screen, self.clock)
             pygame.display.update()
 
             if self.scene == Scenes.loading:

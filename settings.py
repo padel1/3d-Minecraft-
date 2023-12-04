@@ -6,10 +6,10 @@ pygame.init()
 info = pygame.display.Info()
 
 # Get screen width and height
-# screen_width = info.current_w
-# screen_height = info.current_h
-screen_width = 800
-screen_height = 600
+screen_width = info.current_w
+screen_height = info.current_h
+# screen_width = 800
+# screen_height = 600
 
 half_width = screen_width//2
 half_height = screen_height//2
@@ -52,7 +52,7 @@ textures16 = {
     "brick": pygame.image.load(r"assets\brick.png"),
     "redwool": pygame.image.load(r"assets\red_wool.png"),
     "cobblestone": pygame.image.load("assets\cobblestone.png"),
-    "grasstop": pygame.image.load(r"assets\grass s.png"),
+    "water": pygame.image.load(r"assets\water.png"),
     "tall_grass": pygame.image.load(r"assets\tall_grass.png"),
     "wood": pygame.image.load(r"assets\log_oak t.png"),
 }
@@ -77,7 +77,7 @@ textures4 = {
     "redwool": pygame.transform.scale(pygame.image.load(r"assets\red_wool.png"), (4, 4)),
     "cobblestone": pygame.transform.scale(pygame.image.load("assets\cobblestone.png"), (4, 4)),
     "grasstop": pygame.transform.scale(pygame.image.load(r"assets\grass s.png"), (4, 4)),
-    "tall_grass": pygame.transform.scale(pygame.image.load(r"assets\tall_grass.png"), (4, 4)),
+    "water": pygame.transform.scale(pygame.image.load(r"assets\water.png"), (4, 4)),
     "wood": pygame.transform.scale(pygame.image.load(r"assets\log_oak t.png"), (4, 4)),
 }
 
@@ -171,6 +171,13 @@ class Sound:
         pygame.mixer.Sound(
             f'sounds\step\{walk_name}6.ogg'),
             ]
+
+
+
+def display_fps(screen, clock):
+    font = pygame.font.Font("assets\main.ttf", 16) # You can choose your own font and size
+    fps_text = font.render(f"FPS: {int(clock.get_fps())}", True, (255, 255, 255))  # White text
+    screen.blit(fps_text, (10, 10))
 
 
 initial_cubes = [
