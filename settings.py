@@ -6,13 +6,13 @@ pygame.init()
 info = pygame.display.Info()
 
 # Get screen width and height
-screen_width = info.current_w
-screen_height = info.current_h
-# screen_width = 800
-# screen_height = 600
+# screen_width = info.current_w
+# screen_height = info.current_h
+screen_width = 800
+screen_height = 600
 
-half_width = screen_width//2
-half_height = screen_height//2
+half_width = screen_width // 2
+half_height = screen_height // 2
 
 
 # SCREEN_W = 1080
@@ -33,15 +33,17 @@ colors_dic = {
     "0154": (0, 255, 0),
     "2376": (0, 0, 255),
     "1265": (255, 255, 0),
-    "0374": (255, 0, 255)
+    "0374": (255, 0, 255),
 }
 
-colors = [(255, 255, 255),
-          (255, 0, 0),
-          (0, 255, 0),
-          (0, 0, 255),
-          (255, 255, 0),
-          (255, 0, 255)]
+colors = [
+    (255, 255, 255),
+    (255, 0, 0),
+    (0, 255, 0),
+    (0, 0, 255),
+    (255, 255, 0),
+    (255, 0, 255),
+]
 
 
 textures16 = {
@@ -62,10 +64,16 @@ textures8 = {
     "bedrock": pygame.transform.scale(pygame.image.load(r"assets\bedrock.png"), (8, 8)),
     "sand": pygame.transform.scale(pygame.image.load(r"assets\sand.png"), (8, 8)),
     "brick": pygame.transform.scale(pygame.image.load(r"assets\brick.png"), (8, 8)),
-    "redwool": pygame.transform.scale(pygame.image.load(r"assets\red_wool.png"), (8, 8)),
-    "cobblestone": pygame.transform.scale(pygame.image.load("assets\cobblestone.png"), (8, 8)),
+    "redwool": pygame.transform.scale(
+        pygame.image.load(r"assets\red_wool.png"), (8, 8)
+    ),
+    "cobblestone": pygame.transform.scale(
+        pygame.image.load("assets\cobblestone.png"), (8, 8)
+    ),
     "water": pygame.transform.scale(pygame.image.load(r"assets\water.png"), (8, 8)),
-    "tall_grass": pygame.transform.scale(pygame.image.load(r"assets\tall_grass.png"), (8, 8)),
+    "tall_grass": pygame.transform.scale(
+        pygame.image.load(r"assets\tall_grass.png"), (8, 8)
+    ),
     "wood": pygame.transform.scale(pygame.image.load(r"assets\log_oak t.png"), (8, 8)),
 }
 textures4 = {
@@ -74,9 +82,15 @@ textures4 = {
     "bedrock": pygame.transform.scale(pygame.image.load(r"assets\bedrock.png"), (4, 4)),
     "sand": pygame.transform.scale(pygame.image.load(r"assets\sand.png"), (4, 4)),
     "brick": pygame.transform.scale(pygame.image.load(r"assets\brick.png"), (4, 4)),
-    "redwool": pygame.transform.scale(pygame.image.load(r"assets\red_wool.png"), (4, 4)),
-    "cobblestone": pygame.transform.scale(pygame.image.load("assets\cobblestone.png"), (4, 4)),
-    "grasstop": pygame.transform.scale(pygame.image.load(r"assets\grass s.png"), (4, 4)),
+    "redwool": pygame.transform.scale(
+        pygame.image.load(r"assets\red_wool.png"), (4, 4)
+    ),
+    "cobblestone": pygame.transform.scale(
+        pygame.image.load("assets\cobblestone.png"), (4, 4)
+    ),
+    "grasstop": pygame.transform.scale(
+        pygame.image.load(r"assets\grass s.png"), (4, 4)
+    ),
     "water": pygame.transform.scale(pygame.image.load(r"assets\water.png"), (4, 4)),
     "wood": pygame.transform.scale(pygame.image.load(r"assets\log_oak t.png"), (4, 4)),
 }
@@ -90,16 +104,32 @@ class Scenes:
 
 minecraft_logo = pygame.image.load("gui\game_logo.png")
 minecraft_logo_rect = minecraft_logo.get_rect(
-    topleft=(half_width-minecraft_logo.get_width()//2, half_height-minecraft_logo.get_height()//2))
+    topleft=(
+        half_width - minecraft_logo.get_width() // 2,
+        half_height - minecraft_logo.get_height() // 2,
+    )
+)
 
 
 bgs = {
-    1: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama0.png"), (screen_width, screen_height)),
-    2: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama1.png"), (screen_width, screen_height)),
-    3: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama2.png"), (screen_width, screen_height)),
-    4: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama3.png"), (screen_width, screen_height)),
-    5: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama4.png"), (screen_width, screen_height)),
-    6: pygame.transform.smoothscale(pygame.image.load(r"gui\bg\panorama5.png"), (screen_width, screen_height))
+    1: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama0.png"), (screen_width, screen_height)
+    ),
+    2: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama1.png"), (screen_width, screen_height)
+    ),
+    3: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama2.png"), (screen_width, screen_height)
+    ),
+    4: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama3.png"), (screen_width, screen_height)
+    ),
+    5: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama4.png"), (screen_width, screen_height)
+    ),
+    6: pygame.transform.smoothscale(
+        pygame.image.load(r"gui\bg\panorama5.png"), (screen_width, screen_height)
+    ),
 }
 
 
@@ -118,8 +148,7 @@ font = pygame.font.Font("assets\main.ttf", 22)  # Default font with size 36
 def create_button(rect, text, color):
     button_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
     button_surface.fill(color)
-    pygame.draw.rect(button_surface, color,
-                     button_surface.get_rect(), border_radius=10)
+    pygame.draw.rect(button_surface, color, button_surface.get_rect(), border_radius=10)
     text_surface = font.render(text, True, (255, 255, 255))
     text_rect = text_surface.get_rect(center=button_surface.get_rect().center)
     button_surface.blit(text_surface, text_rect)
@@ -127,56 +156,52 @@ def create_button(rect, text, color):
 
 
 preview_button_rect = pygame.Rect(
-    screen_width//2-80, screen_height//2-25, 160, 50)
+    screen_width // 2 - 80, screen_height // 2 - 25, 160, 50
+)
 
-preview_button = create_button(preview_button_rect,
-                               "Preview", (0, 0, 0, 128))
+preview_button = create_button(preview_button_rect, "Preview", (0, 0, 0, 128))
 join_button_rect = pygame.Rect(
-    screen_width//2-125, screen_height//2+60, 250, 50)
+    screen_width // 2 - 125, screen_height // 2 + 60, 250, 50
+)
 
 
-join_button = create_button(join_button_rect,
-                            "Join the server", (0, 0, 0, 128))
+join_button = create_button(join_button_rect, "Join the server", (0, 0, 0, 128))
 
 
 gui = {
-    "inventory": pygame.transform.scale(pygame.image.load(r"assets\inventory.png"), (400, 50)),
+    "inventory": pygame.transform.scale(
+        pygame.image.load(r"assets\inventory.png"), (400, 50)
+    ),
     "crosshair": pygame.image.load(r"assets\crosshair.png"),
-    "hover_slot": pygame.transform.scale(pygame.image.load(r"assets\hover_slot.png"), (50, 50)),
+    "hover_slot": pygame.transform.scale(
+        pygame.image.load(r"assets\hover_slot.png"), (50, 50)
+    ),
 }
 
 
 class Sound:
-    pick = pygame.mixer.Sound(
-        'sounds\pick.mp3')
-    menu = pygame.mixer.Sound(
-        'sounds\music\menu\menu4.ogg')
-    dig = pygame.mixer.Sound(
-        r'sounds\dig\grass3.ogg')
-    click = pygame.mixer.Sound(
-        'sounds\gui\click_stereo1.ogg')
+    pick = pygame.mixer.Sound("sounds\pick.mp3")
+    menu = pygame.mixer.Sound("sounds\music\menu\menu4.ogg")
+    dig = pygame.mixer.Sound(r"sounds\dig\grass3.ogg")
+    click = pygame.mixer.Sound("sounds\gui\click_stereo1.ogg")
     walk_name = "wood"
     walk = [
-      
-        pygame.mixer.Sound(
-            f'sounds\step\{walk_name}1.ogg'),
-        pygame.mixer.Sound(
-            f'sounds\step\{walk_name}2.ogg'),
-        pygame.mixer.Sound(
-           f'sounds\step\{walk_name}3.ogg'),
-        pygame.mixer.Sound(
-            f'sounds\step\{walk_name}4.ogg'),
-        pygame.mixer.Sound(
-            f'sounds\step\{walk_name}5.ogg'),
-        pygame.mixer.Sound(
-            f'sounds\step\{walk_name}6.ogg'),
-            ]
-
+        pygame.mixer.Sound(f"sounds\step\{walk_name}1.ogg"),
+        pygame.mixer.Sound(f"sounds\step\{walk_name}2.ogg"),
+        pygame.mixer.Sound(f"sounds\step\{walk_name}3.ogg"),
+        pygame.mixer.Sound(f"sounds\step\{walk_name}4.ogg"),
+        pygame.mixer.Sound(f"sounds\step\{walk_name}5.ogg"),
+        pygame.mixer.Sound(f"sounds\step\{walk_name}6.ogg"),
+    ]
 
 
 def display_fps(screen, clock):
-    font = pygame.font.Font("assets\main.ttf", 16) # You can choose your own font and size
-    fps_text = font.render(f"FPS: {int(clock.get_fps())}", True, (255, 255, 255))  # White text
+    font = pygame.font.Font(
+        "assets\main.ttf", 16
+    )  # You can choose your own font and size
+    fps_text = font.render(
+        f"FPS: {int(clock.get_fps())}", True, (255, 255, 255)
+    )  # White text
     screen.blit(fps_text, (10, 10))
 
 
