@@ -111,6 +111,12 @@ class Scene:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            # use space to jump
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.acceleration = -0.2
+                    self.camera.position[1] += self.acceleration
+                    # self.sound.jump.play()
 
         # is_inside_cube = any(
         #     cube.center[1] - cube.size / 2
@@ -156,6 +162,40 @@ class Scene:
             self.camera.position = [89, -2, +25]
 
         # movement
+        # if keys[pygame.K_a]:
+        #     new_position = self.camera.position.copy()
+        #     new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
+        #     new_position[0] -= MOVEMENT_SPEED * np.cos(self.camera.angle_h)
+        #     if not self.check_collision(new_position):
+        #         self.camera.position = new_position
+
+        # if keys[pygame.K_d]:
+        #     new_position = self.camera.position.copy()
+        #     new_position[2] -= MOVEMENT_SPEED * \
+        #         np.sin(self.camera.angle_h)
+        #     new_position[0] += MOVEMENT_SPEED * \
+        #         np.cos(self.camera.angle_h)
+
+        #     if not self.check_collision(new_position):
+        #         self.camera.position = new_position
+        # if keys[pygame.K_w]:
+        #     new_position = self.camera.position.copy()
+        #     new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
+        #     new_position[0] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
+        #     if not self.check_collision(new_position):
+        #         self.camera.position = new_position
+        #     self.sound.walk[self.i_walk % len(self.sound.walk)].set_volume(.1)
+        #     self.sound.walk[self.i_walk % len(self.sound.walk)].play()
+        #     self.i_walk += 1
+        #     # self.sound.walk.play()
+        # if keys[pygame.K_s]:
+        #     new_position = self.camera.position.copy()
+        #     new_position[2] -= MOVEMENT_SPEED * \
+        #         np.cos(self.camera.angle_h)
+        #     new_position[0] -= MOVEMENT_SPEED * \
+        #         np.sin(self.camera.angle_h)
+        #     if not self.check_collision(new_position):
+        #         self.camera.position = new_position
         if keys[pygame.K_a]:
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
@@ -165,13 +205,11 @@ class Scene:
 
         if keys[pygame.K_d]:
             new_position = self.camera.position.copy()
-            new_position[2] -= MOVEMENT_SPEED * \
-                np.sin(self.camera.angle_h)
-            new_position[0] += MOVEMENT_SPEED * \
-                np.cos(self.camera.angle_h)
-
+            new_position[2] -= MOVEMENT_SPEED * np.sin(self.camera.angle_h)
+            new_position[0] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
             if not self.check_collision(new_position):
                 self.camera.position = new_position
+
         if keys[pygame.K_w]:
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
@@ -181,16 +219,13 @@ class Scene:
             self.sound.walk[self.i_walk % len(self.sound.walk)].set_volume(.1)
             self.sound.walk[self.i_walk % len(self.sound.walk)].play()
             self.i_walk += 1
-            # self.sound.walk.play()
+
         if keys[pygame.K_s]:
             new_position = self.camera.position.copy()
-            new_position[2] -= MOVEMENT_SPEED * \
-                np.cos(self.camera.angle_h)
-            new_position[0] -= MOVEMENT_SPEED * \
-                np.sin(self.camera.angle_h)
+            new_position[2] -= MOVEMENT_SPEED * np.cos(self.camera.angle_h)
+            new_position[0] -= MOVEMENT_SPEED * np.sin(self.camera.angle_h)
             if not self.check_collision(new_position):
                 self.camera.position = new_position
-
         if keys[pygame.K_r]:
             self.cubes = initial_cubes
 
@@ -208,21 +243,31 @@ class Scene:
                 self.camera.position = new_position
         if keys[pygame.K_e]:
             new_position = self.camera.position.copy()
-            new_position[1] += 2
+            new_position[1] += 1
             if not self.check_collision(new_position):
                 self.camera.position = new_position
+       
 
-        # if self.camera.position[1] < self.ground_under_player:
-        #     self.acceleration += 0.1
-        #     self.camera.position[1] += self.acceleration
-        # else:
-        #     self.acceleration = 0
+        if self.camera.position[1] < -3:
+            self.acceleration += 0.1
+            y = self.camera.position[1] + self.acceleration
+            
+
+            if not self.check_collision(self.camera.position+np.array([0, self.acceleration, 0])):
+                
+                self.camera.position[1] = y
+            else:
+                self.acceleration = 0
+                
+        else:
+            self.camera.position[1]= -3
+            self.acceleration = 0
 
     def check_collision(self, new_position):
         player_point = np.array(
             [new_position[0], new_position[1], new_position[2]])
 
-        player_width = 0.5
+        player_width = 0
         player_height = 1.5
 
         for cube in self.cubes:
@@ -454,15 +499,17 @@ class Scene:
                             # Use the offset corresponding to the closest face to place the new cube
                             new_cube_position = intersection_cube.center + \
                                 face_offsets[closest_face_index]
-
-                            new_cube = Cube(new_cube_position,
-                                            CUBE_SIZE, textures4["sand"])
-                            new_cube.texture = textures4[list(textures4.keys())[
-                                self.selected_texture_index]]
-                            self.sound.pick.play()
-                            self.cubes.append(new_cube)
-                            self.mouse_button_down = False
-                            self.hovered_polygon = None
+                            # Create a new cube only if the cube will not colide with me
+                            
+                            if math.dist(new_cube_position ,self.camera.position) > CUBE_SIZE +3:
+                                new_cube = Cube(new_cube_position,
+                                                CUBE_SIZE, textures4["sand"])
+                                new_cube.texture = textures4[list(textures4.keys())[
+                                    self.selected_texture_index]]
+                                self.sound.pick.play()
+                                self.cubes.append(new_cube)
+                                self.mouse_button_down = False
+                                self.hovered_polygon = None
 
                         else:
 
