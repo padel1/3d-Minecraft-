@@ -8,8 +8,8 @@ info = pygame.display.Info()
 # Get screen width and height
 # screen_width = info.current_w
 # screen_height = info.current_h
-screen_width = 800
-screen_height = 600
+screen_width = 500
+screen_height = 300
 
 half_width = screen_width // 2
 half_height = screen_height // 2
@@ -206,12 +206,12 @@ def display_fps(screen, clock):
 
 
 initial_cubes = [
-    Cube((0, -150, -15), 0.3, textures8["sand"]),
-    Cube((0, 2.5, 0), 0.5, textures8["lava"]),
-    Cube((0, 2, 0), 0.5, textures8["lava"]),
-    Cube((0, 1.5, 0), 0.5, textures8["lava"]),
-    Cube((0, 1, 0), 0.5, textures8["lava"]),
-    Cube((0, 0.5, 0), 0.5, textures8["lava"]),
-    Cube((0, -0.75, 0.5), 2, textures8["grass"]),
-    Cube((0, -0.75, -0.5), 2, textures8["grass"]),
+    # Cube((0, -150, -15), 0.3, textures8["sand"]),
+    # Cube((0, 2.5, 0), 0.5, textures8["lava"]),
+    # Cube((0, 2, 0), 0.5, textures8["lava"]),
+    # Cube((0, 1.5, 0), 0.5, textures8["lava"]),
+    # Cube((0, 1, 0), 0.5, textures8["lava"]),
+    # Cube((0, 0.5, 0), 0.5, textures8["lava"]),
+    # Cube((0, -0.75, 0.5), 2, textures8["grass"]),
+    # Cube((0, -0.75, -0.5), 2, textures8["grass"]),
 ]

@@ -1,16 +1,14 @@
-
-
 import math
 import numpy as np
 from scipy.spatial.transform import Rotation
 
 
 class Cube:
-    def __init__(self, center, size, texture):
+    def __init__(self, center, size):
         self.center = np.array(center)
         self.size = size
         self.points = self.generate_points()
-        self.texture = texture
+        # self.texture = texture
         self.min_bound = self.center - np.array([size / 2, size / 2, size / 2])
         self.max_bound = self.center + np.array([size / 2, size / 2, size / 2])
         # Identity matrix for initial rotation
@@ -18,21 +16,25 @@ class Cube:
 
     def generate_points(self):
         half_size = self.size / 2
-        points = np.array([
-            [-1, -1, -1, 1],
-            [1, -1, -1, 1],
-            [1, 1, -1, 1],
-            [-1, 1, -1, 1],
-            [-1, -1, 1, 1],
-            [1, -1, 1, 1],
-            [1, 1, 1, 1],
-            [-1, 1, 1, 1],
-        ]).T
-        transform_matrix = np.array([
-            [half_size, 0, 0, self.center[0]],
-            [0, half_size, 0, self.center[1]],
-            [0, 0, half_size, self.center[2]],
-        ])
+        points = np.array(
+            [
+                [-1, -1, -1, 1],
+                [1, -1, -1, 1],
+                [1, 1, -1, 1],
+                [-1, 1, -1, 1],
+                [-1, -1, 1, 1],
+                [1, -1, 1, 1],
+                [1, 1, 1, 1],
+                [-1, 1, 1, 1],
+            ]
+        ).T
+        transform_matrix = np.array(
+            [
+                [half_size, 0, 0, self.center[0]],
+                [0, half_size, 0, self.center[1]],
+                [0, 0, half_size, self.center[2]],
+            ]
+        )
         return np.dot(transform_matrix, points).T
 
     def contains_point(self, point):
@@ -62,19 +64,20 @@ class Cube:
             # y
             [0, 1, 5, 4],
             [2, 3, 7, 6],
-
             # z
             [1, 0, 3, 2],
             [4, 5, 6, 7],
             # x
             [1, 2, 6, 5],
-            [3, 0, 4, 7]
+            [3, 0, 4, 7],
         ]
 
         dists = []
         for face in face_vertex_indices:
-            m = np.mean([points[face[0]], points[face[1]],
-                        points[face[2]], points[face[3]]], axis=0)
+            m = np.mean(
+                [points[face[0]], points[face[1]], points[face[2]], points[face[3]]],
+                axis=0,
+            )
             dists.append(math.dist(m, intersection_pt))
 
         return np.argmin(dists)

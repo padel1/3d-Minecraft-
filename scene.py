@@ -27,10 +27,8 @@ class Scene:
         self.camera = Camera()
         self.clock = pygame.time.Clock()
         # cubes
-        self.cubes = [
-            
-        ]
-        self.sun=Cube((78, -150, -15), 0.3, textures4["sand"]),
+        self.cubes = []
+        self.sun = Cube((78, -150, -15), 0.3)
         # move
         self.i_walk = 0
         self.acceleration = 0
@@ -335,7 +333,7 @@ class Scene:
         self.handle_input()
         rotate_h = rotate_matrix_y(self.camera.angle_h)
         rotate_v = rotate_matrix_x(self.camera.angle_v)
-        print(self.sun)
+
         sun = self.sun
         sun_center = sun.points[0]
         sun_center[0] += self.x
@@ -344,6 +342,7 @@ class Scene:
         sun_center = np.dot(sun_center, rotate_v)
         self.draw_ground(rotate_h, rotate_v)
         # sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
+
         self.sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
         for cube in self.sorted_cubes:
             points = cube.points
@@ -375,12 +374,14 @@ class Scene:
 
                     if cube == self.hoverd_cube:
                         if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
-                            draw_polygon(self.screen, pts, cube.texture, 1, True)
+                            draw_polygon(self.screen, pts, textures16["lava"], 1, True)
                             self.hovered_face = []
                         else:
-                            draw_polygon(self.screen, pts, cube.texture, intensity)
+                            draw_polygon(
+                                self.screen, pts, textures16["lava"], intensity
+                            )
                     else:
-                        draw_polygon(self.screen, pts, cube.texture, intensity)
+                        draw_polygon(self.screen, pts, textures16["lava"], intensity)
 
         self.screen.blit(
             gui["crosshair"],
@@ -399,8 +400,6 @@ class Scene:
         i = 0
 
         n = Network()
-        print(n)
-        print(n.port)
 
         player_id = n.game_info["player_id"]
         players = n.game_info["players"]
@@ -409,11 +408,19 @@ class Scene:
         self.camera.position = players[player_id].position
 
         while True:
-            data = n.send({"player_id": player_id, "players": players, "cubes": cubes})
+            players[player_id].position = self.camera.position
+
+            data = n.send(
+                {"player_id": player_id, "players": players, "cubes": self.cubes}
+            )
+            
             players = data["players"]
             cubes = data["cubes"]
-            self.cubes = cubes
-            self.camera.position = players[player_id].position
+            
+            
+            self.cubes=cubes
+         
+            # self.camera.position = players[player_id].position
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -465,12 +472,8 @@ class Scene:
                                 + face_offsets[closest_face_index]
                             )
 
-                            new_cube = Cube(
-                                new_cube_position, CUBE_SIZE, textures4["sand"]
-                            )
-                            new_cube.texture = textures4[
-                                list(textures4.keys())[self.selected_texture_index]
-                            ]
+                            new_cube = Cube(new_cube_position, CUBE_SIZE)
+
                             self.sound.pick.play()
                             self.cubes.append(new_cube)
                             self.mouse_button_down = False
@@ -487,12 +490,8 @@ class Scene:
                                     intersection_polygon, axis=0
                                 ) + np.array([0, -CUBE_SIZE // 2, 0])
 
-                                new_cube = Cube(
-                                    new_cube_position, CUBE_SIZE, textures4["sand"]
-                                )
-                                new_cube.texture = textures4[
-                                    list(textures4.keys())[self.selected_texture_index]
-                                ]
+                                new_cube = Cube(new_cube_position, CUBE_SIZE)
+
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
 
@@ -500,12 +499,8 @@ class Scene:
                                 new_cube_position = intersection_point[0]
                                 new_cube_position[1] -= CUBE_SIZE // 2
 
-                                new_cube = Cube(
-                                    new_cube_position, CUBE_SIZE, textures4["sand"]
-                                )
-                                new_cube.texture = textures4[
-                                    list(textures4.keys())[self.selected_texture_index]
-                                ]
+                                new_cube = Cube(new_cube_position, CUBE_SIZE)
+
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
 
