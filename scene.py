@@ -250,18 +250,18 @@ class Scene:
 
         if self.camera.position[1] < -3:
             self.acceleration += 0.1
-            y = self.camera.position[1] + self.acceleration
+            
             
 
             if not self.check_collision(self.camera.position+np.array([0, self.acceleration, 0])):
                 
-                self.camera.position[1] = y
+                self.camera.position[1] = self.camera.position[1] + self.acceleration
             else:
-                self.acceleration = 0
+                self.acceleration = 0.2
                 
         else:
             self.camera.position[1]= -3
-            self.acceleration = 0
+            self.acceleration = 0.2
 
     def check_collision(self, new_position):
         player_point = np.array(
