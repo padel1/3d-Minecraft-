@@ -248,7 +248,7 @@ class Scene:
                 self.camera.position = new_position
        
 
-        if self.camera.position[1] < -3:
+        if self.camera.position[1] < -5:
             self.acceleration += 0.1
             
             
@@ -260,7 +260,7 @@ class Scene:
                 self.acceleration = 0.2
                 
         else:
-            self.camera.position[1]= -3
+            self.camera.position[1]= -5
             self.acceleration = 0.2
 
     def check_collision(self, new_position):
@@ -268,11 +268,11 @@ class Scene:
             [new_position[0], new_position[1], new_position[2]])
 
         player_width = 0
-        player_height = 1.5
+        player_height = 5
 
         for cube in self.cubes:
             cube_center = np.array(cube.center)
-            cube_size = cube.size+2
+            cube_size = cube.size
 
             if (
                 cube_center[0] - cube_size < player_point[0] + player_width
