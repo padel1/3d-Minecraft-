@@ -12,7 +12,6 @@ def interpolate2d(p1, p2, f):
 
 def draw_polygon(surface, quad, img, intensity, hoverd=False):
     points = dict()
-
     for i in range(img.get_size()[1]+1):
         b = interpolate2d(quad[1], quad[2], i/img.get_size()[1])
         c = interpolate2d(quad[0], quad[3], i/img.get_size()[1])

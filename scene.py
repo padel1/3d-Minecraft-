@@ -7,6 +7,8 @@ from cube import *
 from camera import *
 from texture import *
 from help import *
+from network import Network
+from player import Player
 
 
 class Scene:
@@ -24,7 +26,7 @@ class Scene:
         self.camera = Camera()
         self.clock = pygame.time.Clock()
         # cubes
-        self.cubes = [Cube((78, -150, -15), 0.3, textures4["sand"]),]
+        self.cubes = []
 
         # move
         self.i_walk = 0
@@ -50,6 +52,10 @@ class Scene:
         self.hovered_face = None
         self.sorted_cubes = None
         self.hoverd_cube = None
+        self.sun = Cube((78, -150, -15), 0.3, Texture.sand)
+        self.other_palyer = None
+        self.other_palyer_rotation_h = None
+        self.other_palyer_rotation_v = None
 
     def handle_input(self):
 
@@ -248,19 +254,18 @@ class Scene:
                 self.camera.position = new_position
        
 
-        if self.camera.position[1] < -5:
+        if self.camera.position[1] < -3:
             self.acceleration += 0.1
-            
-            
 
             if not self.check_collision(self.camera.position+np.array([0, self.acceleration, 0])):
-                
-                self.camera.position[1] = self.camera.position[1] + self.acceleration
+
+                self.camera.position[1] = self.camera.position[1] + \
+                    self.acceleration
             else:
                 self.acceleration = 0.2
-                
+
         else:
-            self.camera.position[1]= -5
+            # self.camera.position[1] = -3
             self.acceleration = 0.2
 
     def check_collision(self, new_position):
@@ -392,8 +397,7 @@ class Scene:
         rotate_h = rotate_matrix_y(self.camera.angle_h)
         rotate_v = rotate_matrix_x(self.camera.angle_v)
 
-        sun = self.cubes[0]
-        sun_center = sun.points[0]
+        sun_center = self.sun.points[0]
         sun_center[0] += self.x
         sun_center = sun_center - self.camera.position
         sun_center = np.dot(sun_center, rotate_h)
@@ -413,34 +417,94 @@ class Scene:
             transformed_points = transform_points(
                 transformed_points, self.camera.f)
             points_2d = np.dot(self.camera.K, transformed_points.T).T
+
             at_least_one_point_in_view = any(
                 0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
             )
+
             for surface in surfaces[3:]:
-                # check if collid
 
                 if at_least_one_point_in_view and all(
-                    point[-1] > self.camera.f for _, point in surface
+                    point[-1] > self.camera.f for _,  point in surface[1]
                 ):
-                    pts = [points_2d[point] for point, _ in surface]
-                    ptsd = [point for point, _ in surface]
+                    pts = []
+                    # lwjah = surface[0]
+                    for point, _ in surface[1]:
+                        pts.append(points_2d[point])
 
-                    surface_points = np.array([a for _, a in surface])
+                    ptsd = [point for point, _ in surface[1]]
+
+                    surface_points = np.array([a for _, a in surface[1]])
 
                     intensity = simulate_sunlight(surface_points, sun_center)
 
-                    if cube == self.cubes[0]:
-                        intensity = 1
-                    if cube == self.hoverd_cube:
-                        if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
-                            draw_polygon(self.screen, pts,
-                                         cube.texture, 1, True)
-                            self.hovered_face = []
+                    if self.hoverd_cube != None:
+                        if np.array_equal(cube.center, self.hoverd_cube.center):
+                            if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+
+                                draw_polygon(self.screen, pts,
+                                             textures8[cube.texture], 1, True)
+                                self.hovered_face = []
+                            else:
+
+                                draw_polygon(self.screen, pts,
+                                             textures8[cube.texture], intensity)
                         else:
                             draw_polygon(self.screen, pts,
-                                         cube.texture, intensity)
+                                         textures8[cube.texture], intensity)
+
                     else:
-                        draw_polygon(self.screen, pts, cube.texture, intensity)
+
+                        draw_polygon(self.screen, pts,
+                                     textures8[cube.texture], intensity)
+
+        # draw other player player
+        if self.other_palyer != None:
+            self.other_palyer_rotation_h += ROTATION_SPEED
+            self.other_palyer_rotation_v += ROTATION_SPEED
+
+            points = self.other_palyer.points - self.other_palyer.center
+            points = np.dot(points, rotate_matrix_y(
+                self.other_palyer_rotation_h))
+            points = np.dot(points, rotate_matrix_x(
+                self.other_palyer_rotation_v))
+            points = points + self.other_palyer.center
+            new_points = points - self.camera.position
+
+            transformed_points = np.dot(new_points, rotate_h)
+            transformed_points = np.dot(transformed_points, rotate_v)
+
+            surfaces = get_surfaces(transformed_points)
+
+            transformed_points = transform_points(
+                transformed_points, self.camera.f)
+            points_2d = np.dot(self.camera.K, transformed_points.T).T
+
+            at_least_one_point_in_view = any(
+                0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
+            )
+
+            for surface in surfaces[3:]:
+
+                if at_least_one_point_in_view and all(
+                    point[-1] > self.camera.f for _,  point in surface[1]
+                ):
+                    pts = []
+                    # lwjah = surface[0]
+                    for point, _ in surface[1]:
+                        pts.append(points_2d[point])
+
+                    ptsd = [point for point, _ in surface[1]]
+
+                    surface_points = np.array([a for _, a in surface[1]])
+
+                    intensity = simulate_sunlight(surface_points, sun_center)
+                    if surface[0] == "front":
+                        draw_polygon(self.screen, pts,
+                                 face_texture, intensity)
+                    else:
+                        draw_polygon(self.screen, pts,
+                                 face_texture, 1)
 
         self.screen.blit(gui["crosshair"], (half_width -
                          gui["crosshair"].get_width()//2, half_height - gui["crosshair"].get_height()//2))
@@ -453,8 +517,39 @@ class Scene:
 
         bg_idx = 1
         i = 0
+        n = Network()
+        player_id = n.game_info["player_id"]
+        players = n.game_info["players"]
+        cubes = n.game_info["cubes"]
+        self.cubes = cubes
+        self.camera.position = players[player_id].position
+        self.player = Player(
+            players[player_id], players[player_id].rotation_h, players[player_id].rotation_v)
 
         while True:
+
+            players[player_id].position = self.camera.position
+            players[player_id].rotation_v = self.camera.angle_v
+            players[player_id].rotation_h = self.camera.angle_v
+
+            data = n.send(
+                {"player_id": player_id, "players": players, "cubes": self.cubes}
+            )
+
+            players = data["players"]
+            if len(players) > 1:
+                if data["player_id"] == 0:
+                    self.other_palyer = Cube(players[1].position, 1, "")
+                    self.other_palyer_rotation_v = players[1].rotation_v
+                    self.other_palyer_rotation_h = players[1].rotation_h
+                else:
+                    self.other_palyer = Cube(players[0].position, 1, "")
+                    self.other_palyer_rotation_v = players[0].rotation_v
+                    self.other_palyer_rotation_h = players[0].rotation_h
+
+            cubes = data["cubes"]
+
+            self.cubes = cubes
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -500,12 +595,22 @@ class Scene:
                             new_cube_position = intersection_cube.center + \
                                 face_offsets[closest_face_index]
                             # Create a new cube only if the cube will not colide with me
-                            
-                            if math.dist(new_cube_position ,self.camera.position) > CUBE_SIZE +3:
+
+                            if (math.dist(new_cube_position, self.camera.position) > CUBE_SIZE + 3
+                                and not any(
+                                    np.array_equal(new_cube_position, c.center)
+                                    for c in self.cubes
+                            )
+                                and new_cube_position[1] < 2
+                            ):
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
+                                # if self.selected_texture_index==0:
+                                #     new_cube.texture
+
+                                # Texture.
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
                                 self.mouse_button_down = False
@@ -521,10 +626,11 @@ class Scene:
                                     intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
                                 self.sound.pick.play()
+
                                 self.cubes.append(new_cube)
 
                             elif intersection_point is not None:
@@ -532,14 +638,14 @@ class Scene:
                                 new_cube_position[1] -= CUBE_SIZE//2
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
 
                     if self.scene == Scenes.menu:
-                        if preview_button_rect.collidepoint((x, y)):
+                        if join_button_rect.collidepoint((x, y)):
                             self.sound.menu.stop()
                             self.sound.click.play()
                             self.scene = Scenes.game
@@ -560,7 +666,10 @@ class Scene:
                         )
 
                         if intersection_cube:
-                            self.cubes.remove(intersection_cube)
+                            for c in self.cubes:
+                                if np.array_equal(intersection_cube.center, c.center):
+                                    self.cubes.remove(c)
+                            # self.cubes.remove(intersection_cube)
                             self.sound.dig.set_volume(.5)
                             self.sound.dig.play()
 

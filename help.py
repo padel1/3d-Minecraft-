@@ -14,21 +14,20 @@ def rectangle_center(points):
 def get_surfaces(pts):
     arr = [
         # z
-        [[0, pts[1]], [1, pts[0]], [2, pts[3]], [3, pts[2]]],
-
-        [[4, pts[4]], [5, pts[5]], [6, pts[6]], [7, pts[7]]],
+        ["front", [[0, pts[1]], [1, pts[0]], [2, pts[3]], [3, pts[2]]]],
+        ["back", [[4, pts[4]], [5, pts[5]], [6, pts[6]], [7, pts[7]]]],
         # y
-        [[0, pts[0]], [1, pts[1]], [5, pts[5]], [4, pts[4]]],
-        [[2, pts[2]], [3, pts[3]], [7, pts[7]], [6, pts[6]]],
+        ["top", [[0, pts[0]], [1, pts[1]], [5, pts[5]], [4, pts[4]]]],
+        ["down", [[2, pts[2]], [3, pts[3]], [7, pts[7]], [6, pts[6]]]],
         # x
-        [[1, pts[1]], [2, pts[2]], [6, pts[6]], [5, pts[5]]],
-        [[0, pts[3]], [3, pts[0]], [7, pts[4]], [4, pts[7]]],
+        ["left", [[5, pts[1]], [1, pts[2]], [2, pts[6]], [6, pts[5]]]],
+        ["right", [[4, pts[3]], [0, pts[0]], [3, pts[4]], [7, pts[7]]]],
     ]
 
     return sorted(
         arr,
         key=lambda x: np.sqrt(
-            np.sum((rectangle_center([p[1] for p in x])) ** 2)),
+            np.sum((rectangle_center([p[1] for p in x[1]])) ** 2)),
         reverse=True,
     )
 
