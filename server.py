@@ -7,8 +7,8 @@ from player import Player
 import numpy as np
 import random
 # Define server address and port
-SERVER_ADDRESS = ("192.168.1.35", 5555)
-BUFFER_SIZE = 4096 * 4
+SERVER_ADDRESS = ("localhost", 5555)
+BUFFER_SIZE = 4096 * 8
 
 player_id = 0
 cubes = []
@@ -46,12 +46,16 @@ def handle_client(client_socket, player_id):
                 players[p_id].rotation_h = ps[p_id].rotation_h
                 players[p_id].rotation_v = ps[p_id].rotation_v
 
-
             # Check for collision with small squares
             with lock:
                 for cube in cbs:
                     if not any(np.array_equal(cube.center, c.center) for c in cubes):
                         cubes.append(cube)
+
+                for c in cubes:
+                    if not any(np.array_equal(cube.center, c.center) for cube in cbs):
+                        cubes.remove(c)
+                # if len(cbs) == len(cubes)-1:
 
             # Send updated player information and small squares to all clients
             with lock:

@@ -6,10 +6,10 @@ pygame.init()
 info = pygame.display.Info()
 
 # Get screen width and height
-screen_width = info.current_w
-screen_height = info.current_h
-# screen_width = 500
-# screen_height = 400
+# screen_width = info.current_w
+# screen_height = info.current_h
+screen_width = 500
+screen_height = 400
 
 half_width = screen_width//2
 half_height = screen_height//2

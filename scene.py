@@ -437,15 +437,23 @@ class Scene:
 
                     intensity = simulate_sunlight(surface_points, sun_center)
 
-                    if cube == self.hoverd_cube:
-                        if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
-                            draw_polygon(self.screen, pts,
-                                         textures8[cube.texture], 1, True)
-                            self.hovered_face = []
+                    if self.hoverd_cube != None:
+                        if np.array_equal(cube.center, self.hoverd_cube.center):
+                            if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+
+                                draw_polygon(self.screen, pts,
+                                             textures8[cube.texture], 1, True)
+                                self.hovered_face = []
+                            else:
+
+                                draw_polygon(self.screen, pts,
+                                             textures8[cube.texture], intensity)
                         else:
                             draw_polygon(self.screen, pts,
                                          textures8[cube.texture], intensity)
+
                     else:
+
                         draw_polygon(self.screen, pts,
                                      textures8[cube.texture], intensity)
 
@@ -490,9 +498,12 @@ class Scene:
                     surface_points = np.array([a for _, a in surface[1]])
 
                     intensity = simulate_sunlight(surface_points, sun_center)
-
-                    draw_polygon(self.screen, pts,
+                    if surface[0] == "front":
+                        draw_polygon(self.screen, pts,
                                  face_texture, intensity)
+                    else:
+                        draw_polygon(self.screen, pts,
+                                 face_texture, 1)
 
         self.screen.blit(gui["crosshair"], (half_width -
                          gui["crosshair"].get_width()//2, half_height - gui["crosshair"].get_height()//2))
@@ -584,7 +595,13 @@ class Scene:
                                 face_offsets[closest_face_index]
                             # Create a new cube only if the cube will not colide with me
 
-                            if math.dist(new_cube_position, self.camera.position) > CUBE_SIZE + 3:
+                            if (math.dist(new_cube_position, self.camera.position) > CUBE_SIZE + 3
+                                and not any(
+                                    np.array_equal(new_cube_position, c.center)
+                                    for c in self.cubes
+                            )
+                                and new_cube_position[1] < 2
+                            ):
                                 new_cube = Cube(new_cube_position,
                                                 CUBE_SIZE, Texture.sand)
                                 new_cube.texture = list(textures8.keys())[
@@ -648,7 +665,10 @@ class Scene:
                         )
 
                         if intersection_cube:
-                            self.cubes.remove(intersection_cube)
+                            for c in self.cubes:
+                                if np.array_equal(intersection_cube.center, c.center):
+                                    self.cubes.remove(c)
+                            # self.cubes.remove(intersection_cube)
                             self.sound.dig.set_volume(.5)
                             self.sound.dig.play()
 
