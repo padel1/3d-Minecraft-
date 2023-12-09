@@ -69,7 +69,7 @@ textures8 = {
 }
 
 face_texture = pygame.transform.scale(pygame.image.load(r"assets\face.png"),(8, 8))
-
+side_face_texture=pygame.transform.scale(pygame.image.load(r"assets\grass s.png"),(8, 8))
 
 class Texture:
     lava = "lava",
@@ -98,6 +98,7 @@ textures4 = {
     "tall_grass": pygame.transform.scale(pygame.image.load(r"assets\tall_grass.png"), (4, 4)),
       "grass side": pygame.transform.scale(pygame.image.load(r"assets\grass_block_side.png"), (4, 4)),
 }
+
 
 
 class Scenes:

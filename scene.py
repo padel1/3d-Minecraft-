@@ -22,6 +22,8 @@ class Scene:
         self.selected_texture_index = 0
 
         #
+        self.angle_v_p = 0
+        self.angle_h_p = 0
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.camera = Camera()
         self.clock = pygame.time.Clock()
@@ -123,29 +125,12 @@ class Scene:
                     self.acceleration = -0.2
                     self.camera.position[1] += self.acceleration
                     # self.sound.jump.play()
-
-        # is_inside_cube = any(
-        #     cube.center[1] - cube.size / 2
-        #     < self.camera.position[1] + 5
-        #     < cube.center[1] + cube.size / 2
-        #     and cube.center[0] - cube.size / 2
-        #     < self.camera.position[0]
-        #     < cube.center[0] + cube.size / 2
-        #     and cube.center[2] - cube.size / 2
-        #     < self.camera.position[2]
-        #     < cube.center[2] + cube.size / 2
-        #     for cube in self.cubes
-        # )
-        # if is_inside_cube:
-        #     self.camera.position[1] = -5
-        #     self.ground_under_player = self.camera.position[1]
-        # else:
-        #     self.ground_under_player = -2
-
         mouse_rel = pygame.mouse.get_rel()
         pygame.mouse.set_pos(half_width, half_height)
         self.camera.angle_h += self.sensitivity * mouse_rel[0]
         self.camera.angle_v += self.sensitivity * (-mouse_rel[1])
+        self.angle_h_p -= self.sensitivity * mouse_rel[0]
+        self.angle_v_p -= self.sensitivity * (-mouse_rel[1])
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
@@ -166,42 +151,6 @@ class Scene:
             self.camera.position = [+64, -2, -25]
         if keys[pygame.K_3]:
             self.camera.position = [89, -2, +25]
-
-        # movement
-        # if keys[pygame.K_a]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
-        #     new_position[0] -= MOVEMENT_SPEED * np.cos(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-
-        # if keys[pygame.K_d]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] -= MOVEMENT_SPEED * \
-        #         np.sin(self.camera.angle_h)
-        #     new_position[0] += MOVEMENT_SPEED * \
-        #         np.cos(self.camera.angle_h)
-
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-        # if keys[pygame.K_w]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
-        #     new_position[0] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-        #     self.sound.walk[self.i_walk % len(self.sound.walk)].set_volume(.1)
-        #     self.sound.walk[self.i_walk % len(self.sound.walk)].play()
-        #     self.i_walk += 1
-        #     # self.sound.walk.play()
-        # if keys[pygame.K_s]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] -= MOVEMENT_SPEED * \
-        #         np.cos(self.camera.angle_h)
-        #     new_position[0] -= MOVEMENT_SPEED * \
-        #         np.sin(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
         if keys[pygame.K_a]:
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
@@ -389,7 +338,17 @@ class Scene:
             # if (i + 1) % self.textures_per_row == 0:
             #     current_x = self.inventory_bar_position[0]
             #     current_y += self.texture_slot_size
+    
+    def rotate_other_player_cube(self, points, angle_h, angle_v):
+        
+        rotate_h = rotate_matrix_y(angle_h)
+        rotate_v = rotate_matrix_x(angle_v)
 
+        rotated_points = np.dot(points - self.other_palyer.center, rotate_h)
+        rotated_points = np.dot(rotated_points, rotate_v)
+
+        return rotated_points
+    
     def render(self):
         self.screen.fill((33, 50, 211))
 
@@ -460,16 +419,32 @@ class Scene:
 
         # draw other player player
         if self.other_palyer != None:
-            self.other_palyer_rotation_h += ROTATION_SPEED
-            self.other_palyer_rotation_v += ROTATION_SPEED
+            #rotate the other player cube acording to his angles using rotate matrixes x,y,z
 
-            points = self.other_palyer.points - self.other_palyer.center
-            points = np.dot(points, rotate_matrix_y(
-                self.other_palyer_rotation_h))
-            points = np.dot(points, rotate_matrix_x(
-                self.other_palyer_rotation_v))
-            points = points + self.other_palyer.center
-            new_points = points - self.camera.position
+            rotation_matri_x = np.array([
+        [1, 0, 0],
+        [0, np.cos(self.other_palyer_rotation_v), -np.sin(self.other_palyer_rotation_v)],
+        [0, np.sin(self.other_palyer_rotation_v), np.cos(self.other_palyer_rotation_v)]
+    ])
+
+            rotation_matri_y = np.array([
+                [np.cos(self.other_palyer_rotation_h), 0, np.sin(self.other_palyer_rotation_h)],
+                [0, 1, 0],
+                [-np.sin(self.other_palyer_rotation_h), 0, np.cos(self.other_palyer_rotation_h)]
+            ])
+            rotation_matri_z= np.array([
+                [np.cos(self.other_palyer_rotation_h), -np.sin(self.other_palyer_rotation_h), 0],
+                [np.sin(self.other_palyer_rotation_h), np.cos(self.other_palyer_rotation_h), 0],
+                [0, 0, 1]
+            ])
+
+
+
+    # Rotate the cube vertices
+            rotated_vertices = np.dot(np.dot(self.other_palyer.points-self.other_palyer.center , rotation_matri_x), rotation_matri_y)+self.other_palyer.center
+            
+            
+            new_points = rotated_vertices - self.camera.position
 
             transformed_points = np.dot(new_points, rotate_h)
             transformed_points = np.dot(transformed_points, rotate_v)
@@ -504,7 +479,7 @@ class Scene:
                                  face_texture, intensity)
                     else:
                         draw_polygon(self.screen, pts,
-                                 face_texture, 1)
+                                 side_face_texture, 1)
 
         self.screen.blit(gui["crosshair"], (half_width -
                          gui["crosshair"].get_width()//2, half_height - gui["crosshair"].get_height()//2))
@@ -529,8 +504,8 @@ class Scene:
         while True:
 
             players[player_id].position = self.camera.position
-            players[player_id].rotation_v = self.camera.angle_v
-            players[player_id].rotation_h = self.camera.angle_v
+            players[player_id].rotation_v = self.angle_v_p
+            players[player_id].rotation_h = self.angle_h_p
 
             data = n.send(
                 {"player_id": player_id, "players": players, "cubes": self.cubes}

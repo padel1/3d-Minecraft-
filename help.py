@@ -14,8 +14,8 @@ def rectangle_center(points):
 def get_surfaces(pts):
     arr = [
         # z
-        ["front", [[0, pts[1]], [1, pts[0]], [2, pts[3]], [3, pts[2]]]],
-        ["back", [[4, pts[4]], [5, pts[5]], [6, pts[6]], [7, pts[7]]]],
+        ["front", [[4, pts[4]], [5, pts[5]], [6, pts[6]], [7, pts[7]]]],
+        ["back", [[0, pts[1]], [1, pts[0]], [2, pts[3]], [3, pts[2]]]],
         # y
         ["top", [[0, pts[0]], [1, pts[1]], [5, pts[5]], [4, pts[4]]]],
         ["down", [[2, pts[2]], [3, pts[3]], [7, pts[7]], [6, pts[6]]]],
@@ -53,6 +53,15 @@ def transform_points(points, f):
 
     return np.column_stack(
         (points_x / points_z, points_y / points_z, np.ones(len(points)))
+    )
+
+def rotate_matrix_z(theta):
+    return np.array(
+        [
+            [np.cos(theta), -np.sin(theta), 0],
+            [np.sin(theta), np.cos(theta), 0],
+            [0, 0, 1],
+        ]
     )
 
 
