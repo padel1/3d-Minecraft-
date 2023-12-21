@@ -221,7 +221,7 @@ class Scene:
             [new_position[0], new_position[1], new_position[2]])
 
         player_width = 0
-        player_height = 5
+        player_height = 2
 
         for cube in self.cubes:
             cube_center = np.array(cube.center)
@@ -374,11 +374,13 @@ class Scene:
             body_cubes.append(Cube(
                 [head_position[0], head_position[1] + 0.6, head_position[2]], 0.3, "bedrock"))
             body_cubes.append(Cube(
-                [head_position[0]+0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
-            body_cubes.append(Cube(
-                [head_position[0]-0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
+                [head_position[0], head_position[1] + 0.9, head_position[2]], 0.3, "bedrock"))
 
-           
+            body_cubes.append(Cube(
+                [head_position[0]+0.2, head_position[1] + 0.2, head_position[2]], 0.2, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0]-0.2, head_position[1] + 0.2, head_position[2]], 0.2, "bedrock"))
+
         drawing_cubes = self.cubes+players_cubes+body_cubes
 
         self.sorted_cubes = get_sorted_cubes(
@@ -517,29 +519,30 @@ class Scene:
         bg_idx = 1
         i = 0
         n = Network()
-        player_id = n.game_info["player_id"]
+        p_id = n.game_info["p_id"]
         players = n.game_info["players"]
         cubes = n.game_info["cubes"]
         self.cubes = cubes
-        self.camera.position = players[player_id].position
+        self.camera.position = players[p_id].position
         self.player = Player(
-            players[player_id], players[player_id].rotation_h, players[player_id].rotation_v)
+            players[p_id], players[p_id].rotation_h, players[p_id].rotation_v)
 
         while True:
 
-            players[player_id].position = self.camera.position
-            players[player_id].rotation_v = self.angle_v_p
-            players[player_id].rotation_h = self.angle_h_p
+            players[p_id].position = self.camera.position
+            players[p_id].rotation_v = self.angle_v_p
+            players[p_id].rotation_h = self.angle_h_p
 
             data = n.send(
-                {"player_id": player_id, "players": players, "cubes": self.cubes, "con": self.con}
+                {"p_id": p_id, "players": players,
+                    "cubes": self.cubes, "con": self.con}
             )
 
             players = data["players"]
             if len(players) > 1:
 
                 for id, player in enumerate(players):
-                    if player_id != id:
+                    if p_id != id:
                         self.other_players.append(
                             (Cube(player.position, .2, "bedrock"), player.rotation_h, player.rotation_v))
 
@@ -556,7 +559,7 @@ class Scene:
                         sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                    self.con="add"
+                    self.con = "add"
                     x, y = pygame.mouse.get_pos()
 
                     if self.scene == Scenes.game:
@@ -647,7 +650,7 @@ class Scene:
                             self.scene = Scenes.game
                 # remove a cube using mouse button 3
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-                    self.con="remove"
+                    self.con = "remove"
                     x, y = pygame.mouse.get_pos()
                     if self.scene == Scenes.game:
                         forward_vector = np.array([

@@ -19,14 +19,14 @@ players = []
 lock = threading.Lock()
 
 
-def handle_client(client_socket, player_id):
+def handle_client(client_socket, p_id):
     global players, cubes
 
     players.append(
         Player(([random.randint(0, 10), -5, random.randint(0, 10)]), 90, 90))
     client_socket.sendall(
         pickle.dumps(
-            {"player_id": player_id, "players": players, "cubes": cubes})
+            {"p_id": p_id, "players": players, "cubes": cubes})
     )
 
     while True:
@@ -38,7 +38,7 @@ def handle_client(client_socket, player_id):
             # Unpickle the received data
             data = pickle.loads(data)
 
-            p_id = data["player_id"]
+            p_id = data["p_id"]
             ps = data["players"]
             cbs = data["cubes"]
             con = data["con"]
@@ -79,7 +79,7 @@ def handle_client(client_socket, player_id):
                 client_socket.sendall(
                     pickle.dumps(
                         {
-                            "player_id": player_id,
+                            "p_id": p_id,
                             "players": players,
                             "cubes": cubes,
                             "con": con,
@@ -88,13 +88,14 @@ def handle_client(client_socket, player_id):
                 )
 
         except Exception as e:
-            print(f"Error handling client {player_id}: {e}")
+            print(f"Error handling client {p_id}: {e}")
             break
 
-    print(f"Player {player_id} disconnected.")
+    print(f"Player {p_id} disconnected.")
     # Remove the player from the list upon disconnection
     with lock:
-        del players[player_id]
+        del players[p_id]
+        player_id -= 1
 
     client_socket.close()
 
