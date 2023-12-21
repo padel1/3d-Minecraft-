@@ -8,7 +8,7 @@ import numpy as np
 import random
 
 # Define server address and port
-SERVER_ADDRESS = ("192.168.93.46", 5555)
+SERVER_ADDRESS = ("192.168.62.46", 5555)
 BUFFER_SIZE = 4096 * 16
 
 player_id = 0

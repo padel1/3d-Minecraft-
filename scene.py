@@ -202,7 +202,7 @@ class Scene:
             if not self.check_collision(new_position):
                 self.camera.position = new_position
 
-        if self.camera.position[1] < -3:
+        if self.camera.position[1] < -2:
             self.acceleration += 0.1
 
             if not self.check_collision(self.camera.position+np.array([0, self.acceleration, 0])):
@@ -221,7 +221,7 @@ class Scene:
             [new_position[0], new_position[1], new_position[2]])
 
         player_width = 0
-        player_height = 2
+        player_height = 1
 
         for cube in self.cubes:
             cube_center = np.array(cube.center)
@@ -370,16 +370,16 @@ class Scene:
 
             # Body
             body_cubes.append(Cube(
-                [head_position[0], head_position[1] + 0.3, head_position[2]], 0.3, "bedrock"))
+                [head_position[0], head_position[1] + 0.7, head_position[2]], 0.7, "bedrock"))
             body_cubes.append(Cube(
-                [head_position[0], head_position[1] + 0.6, head_position[2]], 0.3, "bedrock"))
+                [head_position[0], head_position[1] + 1.4, head_position[2]], 0.7, "bedrock"))
             body_cubes.append(Cube(
-                [head_position[0], head_position[1] + 0.9, head_position[2]], 0.3, "bedrock"))
+                [head_position[0], head_position[1] + 2.1, head_position[2]], 0.7, "bedrock"))
 
             body_cubes.append(Cube(
-                [head_position[0]+0.2, head_position[1] + 0.2, head_position[2]], 0.2, "bedrock"))
+                [head_position[0]+0.3, head_position[1] + 0.5, head_position[2]], 0.4, "bedrock"))
             body_cubes.append(Cube(
-                [head_position[0]-0.2, head_position[1] + 0.2, head_position[2]], 0.2, "bedrock"))
+                [head_position[0]-0.3, head_position[1] + 0.5, head_position[2]], 0.4, "bedrock"))
 
         drawing_cubes = self.cubes+players_cubes+body_cubes
 
@@ -544,7 +544,7 @@ class Scene:
                 for id, player in enumerate(players):
                     if p_id != id:
                         self.other_players.append(
-                            (Cube(player.position, .2, "bedrock"), player.rotation_h, player.rotation_v))
+                            (Cube(player.position, .4, "bedrock"), player.rotation_h, player.rotation_v))
 
             cubes = data["cubes"]
             self.cubes = cubes
