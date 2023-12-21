@@ -4,3 +4,4 @@ class Player:
         self.position = player_pos
         self.rotation_h = rotation_h
         self.rotation_v = rotation_v
+

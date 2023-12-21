@@ -7,8 +7,8 @@ from player import Player
 import numpy as np
 import random
 # Define server address and port
-SERVER_ADDRESS = ("localhost", 5555)
-BUFFER_SIZE = 4096 * 8
+SERVER_ADDRESS = ("192.168.93.46", 5555)
+BUFFER_SIZE = 4096 * 16
 
 player_id = 0
 cubes = []
@@ -55,7 +55,7 @@ def handle_client(client_socket, player_id):
                 for c in cubes:
                     if not any(np.array_equal(cube.center, c.center) for cube in cbs):
                         cubes.remove(c)
-                # if len(cbs) == len(cubes)-1:
+             
 
             # Send updated player information and small squares to all clients
             with lock:

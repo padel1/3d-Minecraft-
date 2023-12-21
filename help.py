@@ -34,6 +34,7 @@ def get_surfaces(pts):
 
 def get_sorted_cubes(cubes, camera_position):
     for cube in cubes:
+        
         cube.center = np.mean(cube.points, axis=0)
     return sorted(
         cubes,

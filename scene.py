@@ -55,9 +55,9 @@ class Scene:
         self.sorted_cubes = None
         self.hoverd_cube = None
         self.sun = Cube((78, -150, -15), 0.3, Texture.sand)
-        self.other_palyer = None
-        self.other_palyer_rotation_h = None
-        self.other_palyer_rotation_v = None
+        self.other_players = []
+        self.other_players_rotation_h = None
+        self.other_players_rotation_v = None
 
     def handle_input(self):
 
@@ -201,7 +201,6 @@ class Scene:
             new_position[1] += 1
             if not self.check_collision(new_position):
                 self.camera.position = new_position
-       
 
         if self.camera.position[1] < -3:
             self.acceleration += 0.1
@@ -338,17 +337,17 @@ class Scene:
             # if (i + 1) % self.textures_per_row == 0:
             #     current_x = self.inventory_bar_position[0]
             #     current_y += self.texture_slot_size
-    
+
     def rotate_other_player_cube(self, points, angle_h, angle_v):
-        
+
         rotate_h = rotate_matrix_y(angle_h)
         rotate_v = rotate_matrix_x(angle_v)
 
-        rotated_points = np.dot(points - self.other_palyer.center, rotate_h)
+        rotated_points = np.dot(points - self.other_players.center, rotate_h)
         rotated_points = np.dot(rotated_points, rotate_v)
 
         return rotated_points
-    
+
     def render(self):
         self.screen.fill((33, 50, 211))
 
@@ -362,125 +361,150 @@ class Scene:
         sun_center = np.dot(sun_center, rotate_h)
         sun_center = np.dot(sun_center, rotate_v)
         self.draw_ground(rotate_h, rotate_v)
-        # sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
-        self.sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
+
+        body_cubes = []
+        players_cubes = []
+        for pl in self.other_players:
+            head_position = pl[0].center
+            players_cubes.append(pl[0])
+
+            # Body
+            body_cubes.append(Cube(
+                [head_position[0], head_position[1] + 0.3, head_position[2]], 0.3, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0], head_position[1] + 0.6, head_position[2]], 0.3, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0]+0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0]-0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
+
+           
+        drawing_cubes = self.cubes+players_cubes+body_cubes
+
+        self.sorted_cubes = get_sorted_cubes(
+            drawing_cubes, self.camera.position)
+
         for cube in self.sorted_cubes:
-            points = cube.points
+            if cube in players_cubes:
+                idx = players_cubes.index(cube)
+                _, r_h, r_v = self.other_players[idx]
+                rotation_matri_x = np.array([
+                    [1, 0, 0],
+                    [0, np.cos(r_v), -
+                     np.sin(r_v)],
+                    [0, np.sin(r_v),
+                     np.cos(r_v)]
+                ])
 
-            new_points = points - self.camera.position
-            transformed_points = np.dot(new_points, rotate_h)
-            transformed_points = np.dot(transformed_points, rotate_v)
+                rotation_matri_y = np.array([
+                    [np.cos(r_h), 0,
+                     np.sin(r_h)],
+                    [0, 1, 0],
+                    [-np.sin(r_h), 0,
+                     np.cos(r_h)]
+                ])
 
-            surfaces = get_surfaces(transformed_points)
+                rotated_vertices = np.dot(np.dot(cube.points-cube.center,
+                                          rotation_matri_x), rotation_matri_y)+cube.center
 
-            transformed_points = transform_points(
-                transformed_points, self.camera.f)
-            points_2d = np.dot(self.camera.K, transformed_points.T).T
+                new_points = rotated_vertices - self.camera.position
 
-            at_least_one_point_in_view = any(
-                0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
-            )
+                transformed_points = np.dot(new_points, rotate_h)
+                transformed_points = np.dot(transformed_points, rotate_v)
 
-            for surface in surfaces[3:]:
+                surfaces = get_surfaces(transformed_points)
 
-                if at_least_one_point_in_view and all(
-                    point[-1] > self.camera.f for _,  point in surface[1]
-                ):
-                    pts = []
-                    # lwjah = surface[0]
-                    for point, _ in surface[1]:
-                        pts.append(points_2d[point])
+                transformed_points = transform_points(
+                    transformed_points, self.camera.f)
+                points_2d = np.dot(self.camera.K, transformed_points.T).T
 
-                    ptsd = [point for point, _ in surface[1]]
+                at_least_one_point_in_view = any(
+                    0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
+                )
 
-                    surface_points = np.array([a for _, a in surface[1]])
+                for surface in surfaces[3:]:
 
-                    intensity = simulate_sunlight(surface_points, sun_center)
+                    if at_least_one_point_in_view and all(
+                        point[-1] > self.camera.f for _,  point in surface[1]
+                    ):
+                        pts = []
+                        # lwjah = surface[0]
+                        for point, _ in surface[1]:
+                            pts.append(points_2d[point])
 
-                    if self.hoverd_cube != None:
-                        if np.array_equal(cube.center, self.hoverd_cube.center):
-                            if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+                        ptsd = [point for point, _ in surface[1]]
 
-                                draw_polygon(self.screen, pts,
-                                             textures8[cube.texture], 1, True)
-                                self.hovered_face = []
+                        surface_points = np.array([a for _, a in surface[1]])
+
+                        intensity = simulate_sunlight(
+                            surface_points, sun_center)
+                        if surface[0] == "front":
+                            draw_polygon(self.screen, pts,
+                                         face_texture, intensity)
+                        else:
+                            draw_polygon(self.screen, pts,
+                                         side_face_texture, 0)
+            else:
+
+                points = cube.points
+
+                new_points = points - self.camera.position
+                transformed_points = np.dot(new_points, rotate_h)
+                transformed_points = np.dot(transformed_points, rotate_v)
+
+                surfaces = get_surfaces(transformed_points)
+
+                transformed_points = transform_points(
+                    transformed_points, self.camera.f)
+                points_2d = np.dot(self.camera.K, transformed_points.T).T
+
+                at_least_one_point_in_view = any(
+                    0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
+                )
+
+                for surface in surfaces[3:]:
+
+                    if at_least_one_point_in_view and all(
+                        point[-1] > self.camera.f for _,  point in surface[1]
+                    ):
+                        pts = []
+                        # lwjah = surface[0]
+                        for point, _ in surface[1]:
+                            pts.append(points_2d[point])
+
+                        ptsd = [point for point, _ in surface[1]]
+
+                        surface_points = np.array([a for _, a in surface[1]])
+
+                        intensity = simulate_sunlight(
+                            surface_points, sun_center)
+                        if cube in body_cubes:
+
+                            draw_polygon(self.screen, pts,
+                                         body, intensity)
+
+                        else:
+                            if self.hoverd_cube != None:
+                                if np.array_equal(cube.center, self.hoverd_cube.center):
+                                    if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+
+                                        draw_polygon(self.screen, pts,
+                                                     textures8[cube.texture], 1, True)
+                                        self.hovered_face = []
+                                    else:
+
+                                        draw_polygon(self.screen, pts,
+                                                     textures8[cube.texture], intensity)
+                                else:
+                                    draw_polygon(self.screen, pts,
+                                                 textures8[cube.texture], intensity)
+
                             else:
 
                                 draw_polygon(self.screen, pts,
                                              textures8[cube.texture], intensity)
-                        else:
-                            draw_polygon(self.screen, pts,
-                                         textures8[cube.texture], intensity)
 
-                    else:
-
-                        draw_polygon(self.screen, pts,
-                                     textures8[cube.texture], intensity)
-
-        # draw other player player
-        if self.other_palyer != None:
-            #rotate the other player cube acording to his angles using rotate matrixes x,y,z
-
-            rotation_matri_x = np.array([
-        [1, 0, 0],
-        [0, np.cos(self.other_palyer_rotation_v), -np.sin(self.other_palyer_rotation_v)],
-        [0, np.sin(self.other_palyer_rotation_v), np.cos(self.other_palyer_rotation_v)]
-    ])
-
-            rotation_matri_y = np.array([
-                [np.cos(self.other_palyer_rotation_h), 0, np.sin(self.other_palyer_rotation_h)],
-                [0, 1, 0],
-                [-np.sin(self.other_palyer_rotation_h), 0, np.cos(self.other_palyer_rotation_h)]
-            ])
-            rotation_matri_z= np.array([
-                [np.cos(self.other_palyer_rotation_h), -np.sin(self.other_palyer_rotation_h), 0],
-                [np.sin(self.other_palyer_rotation_h), np.cos(self.other_palyer_rotation_h), 0],
-                [0, 0, 1]
-            ])
-
-
-
-    # Rotate the cube vertices
-            rotated_vertices = np.dot(np.dot(self.other_palyer.points-self.other_palyer.center , rotation_matri_x), rotation_matri_y)+self.other_palyer.center
-            
-            
-            new_points = rotated_vertices - self.camera.position
-
-            transformed_points = np.dot(new_points, rotate_h)
-            transformed_points = np.dot(transformed_points, rotate_v)
-
-            surfaces = get_surfaces(transformed_points)
-
-            transformed_points = transform_points(
-                transformed_points, self.camera.f)
-            points_2d = np.dot(self.camera.K, transformed_points.T).T
-
-            at_least_one_point_in_view = any(
-                0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
-            )
-
-            for surface in surfaces[3:]:
-
-                if at_least_one_point_in_view and all(
-                    point[-1] > self.camera.f for _,  point in surface[1]
-                ):
-                    pts = []
-                    # lwjah = surface[0]
-                    for point, _ in surface[1]:
-                        pts.append(points_2d[point])
-
-                    ptsd = [point for point, _ in surface[1]]
-
-                    surface_points = np.array([a for _, a in surface[1]])
-
-                    intensity = simulate_sunlight(surface_points, sun_center)
-                    if surface[0] == "front":
-                        draw_polygon(self.screen, pts,
-                                 face_texture, intensity)
-                    else:
-                        draw_polygon(self.screen, pts,
-                                 side_face_texture, 1)
-
+        self.other_players = []
         self.screen.blit(gui["crosshair"], (half_width -
                          gui["crosshair"].get_width()//2, half_height - gui["crosshair"].get_height()//2))
 
@@ -513,14 +537,11 @@ class Scene:
 
             players = data["players"]
             if len(players) > 1:
-                if data["player_id"] == 0:
-                    self.other_palyer = Cube(players[1].position, 1, "")
-                    self.other_palyer_rotation_v = players[1].rotation_v
-                    self.other_palyer_rotation_h = players[1].rotation_h
-                else:
-                    self.other_palyer = Cube(players[0].position, 1, "")
-                    self.other_palyer_rotation_v = players[0].rotation_v
-                    self.other_palyer_rotation_h = players[0].rotation_h
+
+                for id, player in enumerate(players):
+                    if player_id != id:
+                        self.other_players.append(
+                            (Cube(player.position, .2, "bedrock"), player.rotation_h, player.rotation_v))
 
             cubes = data["cubes"]
 
