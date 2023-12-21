@@ -22,9 +22,11 @@ lock = threading.Lock()
 def handle_client(client_socket, player_id):
     global players, cubes
 
-    players.append(Player(([random.randint(0, 10), -5, random.randint(0, 10)]), 90, 90))
+    players.append(
+        Player(([random.randint(0, 10), -5, random.randint(0, 10)]), 90, 90))
     client_socket.sendall(
-        pickle.dumps({"player_id": player_id, "players": players, "cubes": cubes})
+        pickle.dumps(
+            {"player_id": player_id, "players": players, "cubes": cubes})
     )
 
     while True:
@@ -52,7 +54,8 @@ def handle_client(client_socket, player_id):
             with lock:
                 for cube in cubes:
                     if (
-                        not any(np.array_equal(cube.center, c.center) for c in cbs)
+                        not any(np.array_equal(cube.center, c.center)
+                                for c in cbs)
                         and con == "remove"
                     ):
                         print("remove player:", p_id)
@@ -61,7 +64,8 @@ def handle_client(client_socket, player_id):
 
                 for cube in cbs:
                     if (
-                        not any(np.array_equal(cube.center, c.center) for c in cubes)
+                        not any(np.array_equal(cube.center, c.center)
+                                for c in cubes)
                         and con == "add"
                     ):
                         print("add player:", p_id)
@@ -115,7 +119,8 @@ def main():
         print(f"Player {player_id} connected.")
 
         # Start a new thread to handle the client
-        threading.Thread(target=handle_client, args=(client_socket, player_id)).start()
+        threading.Thread(target=handle_client, args=(
+            client_socket, player_id)).start()
 
         # Increment player ID for the next client
         player_id += 1
