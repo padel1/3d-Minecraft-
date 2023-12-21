@@ -107,8 +107,7 @@ def main():
     global cubes
     global players
     global player_id
-    cubes.append(Cube([0, 0, 0], 2, "grass"))
-    cubes.append(Cube([0, 0, 4], 2, "grass"))
+
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(SERVER_ADDRESS)
     server_socket.listen()  # Allow up to 3 connections

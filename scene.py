@@ -221,7 +221,7 @@ class Scene:
             [new_position[0], new_position[1], new_position[2]])
 
         player_width = 0
-        player_height = 1
+        player_height = 1.5
 
         for cube in self.cubes:
             cube_center = np.array(cube.center)
