@@ -29,7 +29,7 @@ class Scene:
         self.clock = pygame.time.Clock()
         # cubes
         self.cubes = []
-
+        self.con = ""
         # move
         self.i_walk = 0
         self.acceleration = 0
@@ -532,7 +532,7 @@ class Scene:
             players[player_id].rotation_h = self.angle_h_p
 
             data = n.send(
-                {"player_id": player_id, "players": players, "cubes": self.cubes}
+                {"player_id": player_id, "players": players, "cubes": self.cubes, "con": self.con}
             )
 
             players = data["players"]
@@ -544,9 +544,8 @@ class Scene:
                             (Cube(player.position, .2, "bedrock"), player.rotation_h, player.rotation_v))
 
             cubes = data["cubes"]
-
             self.cubes = cubes
-
+            self.con = data["con"]
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -557,6 +556,7 @@ class Scene:
                         sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    self.con="add"
                     x, y = pygame.mouse.get_pos()
 
                     if self.scene == Scenes.game:
@@ -647,6 +647,7 @@ class Scene:
                             self.scene = Scenes.game
                 # remove a cube using mouse button 3
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                    self.con="remove"
                     x, y = pygame.mouse.get_pos()
                     if self.scene == Scenes.game:
                         forward_vector = np.array([
