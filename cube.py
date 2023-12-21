@@ -13,7 +13,6 @@ class Cube:
         self.texture = texture
         self.min_bound = self.center - np.array([size / 2, size / 2, size / 2])
         self.max_bound = self.center + np.array([size / 2, size / 2, size / 2])
-        # Identity matrix for initial rotation
         self.rotation_matrix = np.eye(3)
 
     def generate_points(self):

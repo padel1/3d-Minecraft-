@@ -6,10 +6,10 @@ pygame.init()
 info = pygame.display.Info()
 
 # Get screen width and height
-screen_width = info.current_w
-screen_height = info.current_h
-# screen_width = 800
-# screen_height = 600
+# screen_width = info.current_w
+# screen_height = info.current_h
+screen_width = 500
+screen_height = 400
 
 half_width = screen_width//2
 half_height = screen_height//2
@@ -45,41 +45,66 @@ colors = [(255, 255, 255),
 
 
 textures16 = {
-    "lava": pygame.image.load("assets\lava.png"),
-    "grass": pygame.image.load("assets\grass t.png"),
+    "lava": pygame.image.load(r"assets\lava.png"),
+    "grass": pygame.image.load(r"assets\grass t.png"),
     "bedrock": pygame.image.load(r"assets\bedrock.png"),
     "sand": pygame.image.load(r"assets\sand.png"),
     "brick": pygame.image.load(r"assets\brick.png"),
-    "redwool": pygame.image.load(r"assets\red_wool.png"),
-    "cobblestone": pygame.image.load("assets\cobblestone.png"),
+    "cobblestone": pygame.image.load(r"assets\cobblestone.png"),
     "water": pygame.image.load(r"assets\water.png"),
     "tall_grass": pygame.image.load(r"assets\tall_grass.png"),
-    "wood": pygame.image.load(r"assets\log_oak t.png"),
+    "grass side":pygame.image.load(r"assets\grass_block_side.png")
 }
 textures8 = {
-    "lava": pygame.transform.scale(pygame.image.load("assets\lava.png"), (8, 8)),
-    "grass": pygame.transform.scale(pygame.image.load("assets\grass t.png"), (8, 8)),
+    "lava": pygame.transform.scale(pygame.image.load(r"assets\lava.png"), (8, 8)),
+    "grass": pygame.transform.scale(pygame.image.load(r"assets\grass t.png"), (8, 8)),
     "bedrock": pygame.transform.scale(pygame.image.load(r"assets\bedrock.png"), (8, 8)),
     "sand": pygame.transform.scale(pygame.image.load(r"assets\sand.png"), (8, 8)),
     "brick": pygame.transform.scale(pygame.image.load(r"assets\brick.png"), (8, 8)),
-    "redwool": pygame.transform.scale(pygame.image.load(r"assets\red_wool.png"), (8, 8)),
-    "cobblestone": pygame.transform.scale(pygame.image.load("assets\cobblestone.png"), (8, 8)),
+    "cobblestone": pygame.transform.scale(pygame.image.load(r"assets\cobblestone.png"), (8, 8)),
     "water": pygame.transform.scale(pygame.image.load(r"assets\water.png"), (8, 8)),
     "tall_grass": pygame.transform.scale(pygame.image.load(r"assets\tall_grass.png"), (8, 8)),
-    "wood": pygame.transform.scale(pygame.image.load(r"assets\log_oak t.png"), (8, 8)),
+    "grass side": pygame.transform.scale(pygame.image.load(r"assets\grass_block_side.png"), (8, 8)),
+
 }
+
+face_texture = pygame.transform.scale(pygame.image.load(r"assets\face.png"),(8, 8))
+side_face_texture=pygame.transform.scale(pygame.image.load(r"assets\grass s.png"),(8, 8))
+
+
+body = pygame.image.load(r"assets\body\player_back.png")
+
+
+
+
+class Texture:
+    lava = "lava",
+    grass = "grass",
+    bedrock = "bedrock",
+    sand = "sand",
+    brick = "brick",
+    cobblestone = "cobblestone",
+    water = "water",
+    tall_grass = "tall_grass",
+    grass_side = "grass side",
+
+grass_face8 = pygame.transform.scale(pygame.image.load(r"assets\grass.png"), (8, 8))
+grass_face4 = pygame.transform.scale(pygame.image.load(r"assets\grass.png"), (4, 4))
+grass_face16 = pygame.image.load(r"assets\grass.png")
+
 textures4 = {
-    "lava": pygame.transform.scale(pygame.image.load("assets\lava.png"), (4, 4)),
-    "grass": pygame.transform.scale(pygame.image.load("assets\grass t.png"), (4, 4)),
+    "lava": pygame.transform.scale(pygame.image.load(r"assets\lava.png"), (4, 4)),
+    "grass": pygame.transform.scale(pygame.image.load(r"assets\grass t.png"), (4, 4)),
     "bedrock": pygame.transform.scale(pygame.image.load(r"assets\bedrock.png"), (4, 4)),
     "sand": pygame.transform.scale(pygame.image.load(r"assets\sand.png"), (4, 4)),
     "brick": pygame.transform.scale(pygame.image.load(r"assets\brick.png"), (4, 4)),
-    "redwool": pygame.transform.scale(pygame.image.load(r"assets\red_wool.png"), (4, 4)),
-    "cobblestone": pygame.transform.scale(pygame.image.load("assets\cobblestone.png"), (4, 4)),
-    "grasstop": pygame.transform.scale(pygame.image.load(r"assets\grass s.png"), (4, 4)),
+  
+    "cobblestone": pygame.transform.scale(pygame.image.load(r"assets\cobblestone.png"), (4, 4)),
     "water": pygame.transform.scale(pygame.image.load(r"assets\water.png"), (4, 4)),
-    "wood": pygame.transform.scale(pygame.image.load(r"assets\log_oak t.png"), (4, 4)),
+    "tall_grass": pygame.transform.scale(pygame.image.load(r"assets\tall_grass.png"), (4, 4)),
+      "grass side": pygame.transform.scale(pygame.image.load(r"assets\grass_block_side.png"), (4, 4)),
 }
+
 
 
 class Scenes:

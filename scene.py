@@ -7,6 +7,8 @@ from cube import *
 from camera import *
 from texture import *
 from help import *
+from network import Network
+from player import Player
 
 
 class Scene:
@@ -20,12 +22,14 @@ class Scene:
         self.selected_texture_index = 0
 
         #
+        self.angle_v_p = 0
+        self.angle_h_p = 0
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.camera = Camera()
         self.clock = pygame.time.Clock()
         # cubes
-        self.cubes = [Cube((78, -150, -15), 0.3, textures4["sand"]),]
-
+        self.cubes = []
+        self.con = ""
         # move
         self.i_walk = 0
         self.acceleration = 0
@@ -50,6 +54,10 @@ class Scene:
         self.hovered_face = None
         self.sorted_cubes = None
         self.hoverd_cube = None
+        self.sun = Cube((78, -150, -15), 0.3, Texture.sand)
+        self.other_players = []
+        self.other_players_rotation_h = None
+        self.other_players_rotation_v = None
 
     def handle_input(self):
 
@@ -117,29 +125,12 @@ class Scene:
                     self.acceleration = -0.2
                     self.camera.position[1] += self.acceleration
                     # self.sound.jump.play()
-
-        # is_inside_cube = any(
-        #     cube.center[1] - cube.size / 2
-        #     < self.camera.position[1] + 5
-        #     < cube.center[1] + cube.size / 2
-        #     and cube.center[0] - cube.size / 2
-        #     < self.camera.position[0]
-        #     < cube.center[0] + cube.size / 2
-        #     and cube.center[2] - cube.size / 2
-        #     < self.camera.position[2]
-        #     < cube.center[2] + cube.size / 2
-        #     for cube in self.cubes
-        # )
-        # if is_inside_cube:
-        #     self.camera.position[1] = -5
-        #     self.ground_under_player = self.camera.position[1]
-        # else:
-        #     self.ground_under_player = -2
-
         mouse_rel = pygame.mouse.get_rel()
         pygame.mouse.set_pos(half_width, half_height)
         self.camera.angle_h += self.sensitivity * mouse_rel[0]
         self.camera.angle_v += self.sensitivity * (-mouse_rel[1])
+        self.angle_h_p -= self.sensitivity * mouse_rel[0]
+        self.angle_v_p -= self.sensitivity * (-mouse_rel[1])
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
@@ -160,42 +151,6 @@ class Scene:
             self.camera.position = [+64, -2, -25]
         if keys[pygame.K_3]:
             self.camera.position = [89, -2, +25]
-
-        # movement
-        # if keys[pygame.K_a]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
-        #     new_position[0] -= MOVEMENT_SPEED * np.cos(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-
-        # if keys[pygame.K_d]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] -= MOVEMENT_SPEED * \
-        #         np.sin(self.camera.angle_h)
-        #     new_position[0] += MOVEMENT_SPEED * \
-        #         np.cos(self.camera.angle_h)
-
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-        # if keys[pygame.K_w]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] += MOVEMENT_SPEED * np.cos(self.camera.angle_h)
-        #     new_position[0] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
-        #     self.sound.walk[self.i_walk % len(self.sound.walk)].set_volume(.1)
-        #     self.sound.walk[self.i_walk % len(self.sound.walk)].play()
-        #     self.i_walk += 1
-        #     # self.sound.walk.play()
-        # if keys[pygame.K_s]:
-        #     new_position = self.camera.position.copy()
-        #     new_position[2] -= MOVEMENT_SPEED * \
-        #         np.cos(self.camera.angle_h)
-        #     new_position[0] -= MOVEMENT_SPEED * \
-        #         np.sin(self.camera.angle_h)
-        #     if not self.check_collision(new_position):
-        #         self.camera.position = new_position
         if keys[pygame.K_a]:
             new_position = self.camera.position.copy()
             new_position[2] += MOVEMENT_SPEED * np.sin(self.camera.angle_h)
@@ -246,21 +201,19 @@ class Scene:
             new_position[1] += 1
             if not self.check_collision(new_position):
                 self.camera.position = new_position
-       
 
-        if self.camera.position[1] < -5:
+        if self.camera.position[1] < -3:
             self.acceleration += 0.1
-            
-            
 
             if not self.check_collision(self.camera.position+np.array([0, self.acceleration, 0])):
-                
-                self.camera.position[1] = self.camera.position[1] + self.acceleration
+
+                self.camera.position[1] = self.camera.position[1] + \
+                    self.acceleration
             else:
                 self.acceleration = 0.2
-                
+
         else:
-            self.camera.position[1]= -5
+            # self.camera.position[1] = -3
             self.acceleration = 0.2
 
     def check_collision(self, new_position):
@@ -385,6 +338,16 @@ class Scene:
             #     current_x = self.inventory_bar_position[0]
             #     current_y += self.texture_slot_size
 
+    def rotate_other_player_cube(self, points, angle_h, angle_v):
+
+        rotate_h = rotate_matrix_y(angle_h)
+        rotate_v = rotate_matrix_x(angle_v)
+
+        rotated_points = np.dot(points - self.other_players.center, rotate_h)
+        rotated_points = np.dot(rotated_points, rotate_v)
+
+        return rotated_points
+
     def render(self):
         self.screen.fill((33, 50, 211))
 
@@ -392,56 +355,156 @@ class Scene:
         rotate_h = rotate_matrix_y(self.camera.angle_h)
         rotate_v = rotate_matrix_x(self.camera.angle_v)
 
-        sun = self.cubes[0]
-        sun_center = sun.points[0]
+        sun_center = self.sun.points[0]
         sun_center[0] += self.x
         sun_center = sun_center - self.camera.position
         sun_center = np.dot(sun_center, rotate_h)
         sun_center = np.dot(sun_center, rotate_v)
         self.draw_ground(rotate_h, rotate_v)
-        # sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
-        self.sorted_cubes = get_sorted_cubes(self.cubes, self.camera.position)
+
+        body_cubes = []
+        players_cubes = []
+        for pl in self.other_players:
+            head_position = pl[0].center
+            players_cubes.append(pl[0])
+
+            # Body
+            body_cubes.append(Cube(
+                [head_position[0], head_position[1] + 0.3, head_position[2]], 0.3, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0], head_position[1] + 0.6, head_position[2]], 0.3, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0]+0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
+            body_cubes.append(Cube(
+                [head_position[0]-0.2, head_position[1] + 0.2, head_position[2]], 0.1, "bedrock"))
+
+           
+        drawing_cubes = self.cubes+players_cubes+body_cubes
+
+        self.sorted_cubes = get_sorted_cubes(
+            drawing_cubes, self.camera.position)
+
         for cube in self.sorted_cubes:
-            points = cube.points
+            if cube in players_cubes:
+                idx = players_cubes.index(cube)
+                _, r_h, r_v = self.other_players[idx]
+                rotation_matri_x = np.array([
+                    [1, 0, 0],
+                    [0, np.cos(r_v), -
+                     np.sin(r_v)],
+                    [0, np.sin(r_v),
+                     np.cos(r_v)]
+                ])
 
-            new_points = points - self.camera.position
-            transformed_points = np.dot(new_points, rotate_h)
-            transformed_points = np.dot(transformed_points, rotate_v)
+                rotation_matri_y = np.array([
+                    [np.cos(r_h), 0,
+                     np.sin(r_h)],
+                    [0, 1, 0],
+                    [-np.sin(r_h), 0,
+                     np.cos(r_h)]
+                ])
 
-            surfaces = get_surfaces(transformed_points)
+                rotated_vertices = np.dot(np.dot(cube.points-cube.center,
+                                          rotation_matri_x), rotation_matri_y)+cube.center
 
-            transformed_points = transform_points(
-                transformed_points, self.camera.f)
-            points_2d = np.dot(self.camera.K, transformed_points.T).T
-            at_least_one_point_in_view = any(
-                0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
-            )
-            for surface in surfaces[3:]:
-                # check if collid
+                new_points = rotated_vertices - self.camera.position
 
-                if at_least_one_point_in_view and all(
-                    point[-1] > self.camera.f for _, point in surface
-                ):
-                    pts = [points_2d[point] for point, _ in surface]
-                    ptsd = [point for point, _ in surface]
+                transformed_points = np.dot(new_points, rotate_h)
+                transformed_points = np.dot(transformed_points, rotate_v)
 
-                    surface_points = np.array([a for _, a in surface])
+                surfaces = get_surfaces(transformed_points)
 
-                    intensity = simulate_sunlight(surface_points, sun_center)
+                transformed_points = transform_points(
+                    transformed_points, self.camera.f)
+                points_2d = np.dot(self.camera.K, transformed_points.T).T
 
-                    if cube == self.cubes[0]:
-                        intensity = 1
-                    if cube == self.hoverd_cube:
-                        if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+                at_least_one_point_in_view = any(
+                    0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
+                )
+
+                for surface in surfaces[3:]:
+
+                    if at_least_one_point_in_view and all(
+                        point[-1] > self.camera.f for _,  point in surface[1]
+                    ):
+                        pts = []
+                        # lwjah = surface[0]
+                        for point, _ in surface[1]:
+                            pts.append(points_2d[point])
+
+                        ptsd = [point for point, _ in surface[1]]
+
+                        surface_points = np.array([a for _, a in surface[1]])
+
+                        intensity = simulate_sunlight(
+                            surface_points, sun_center)
+                        if surface[0] == "front":
                             draw_polygon(self.screen, pts,
-                                         cube.texture, 1, True)
-                            self.hovered_face = []
+                                         face_texture, intensity)
                         else:
                             draw_polygon(self.screen, pts,
-                                         cube.texture, intensity)
-                    else:
-                        draw_polygon(self.screen, pts, cube.texture, intensity)
+                                         side_face_texture, 0)
+            else:
 
+                points = cube.points
+
+                new_points = points - self.camera.position
+                transformed_points = np.dot(new_points, rotate_h)
+                transformed_points = np.dot(transformed_points, rotate_v)
+
+                surfaces = get_surfaces(transformed_points)
+
+                transformed_points = transform_points(
+                    transformed_points, self.camera.f)
+                points_2d = np.dot(self.camera.K, transformed_points.T).T
+
+                at_least_one_point_in_view = any(
+                    0 <= point[0] < screen_width and 0 <= point[1] < screen_height for point in points_2d
+                )
+
+                for surface in surfaces[3:]:
+
+                    if at_least_one_point_in_view and all(
+                        point[-1] > self.camera.f for _,  point in surface[1]
+                    ):
+                        pts = []
+                        # lwjah = surface[0]
+                        for point, _ in surface[1]:
+                            pts.append(points_2d[point])
+
+                        ptsd = [point for point, _ in surface[1]]
+
+                        surface_points = np.array([a for _, a in surface[1]])
+
+                        intensity = simulate_sunlight(
+                            surface_points, sun_center)
+                        if cube in body_cubes:
+
+                            draw_polygon(self.screen, pts,
+                                         body, intensity)
+
+                        else:
+                            if self.hoverd_cube != None:
+                                if np.array_equal(cube.center, self.hoverd_cube.center):
+                                    if np.array_equal(np.sort(ptsd), np.sort(self.hovered_face)):
+
+                                        draw_polygon(self.screen, pts,
+                                                     textures8[cube.texture], 1, True)
+                                        self.hovered_face = []
+                                    else:
+
+                                        draw_polygon(self.screen, pts,
+                                                     textures8[cube.texture], intensity)
+                                else:
+                                    draw_polygon(self.screen, pts,
+                                                 textures8[cube.texture], intensity)
+
+                            else:
+
+                                draw_polygon(self.screen, pts,
+                                             textures8[cube.texture], intensity)
+
+        self.other_players = []
         self.screen.blit(gui["crosshair"], (half_width -
                          gui["crosshair"].get_width()//2, half_height - gui["crosshair"].get_height()//2))
 
@@ -453,9 +516,36 @@ class Scene:
 
         bg_idx = 1
         i = 0
+        n = Network()
+        player_id = n.game_info["player_id"]
+        players = n.game_info["players"]
+        cubes = n.game_info["cubes"]
+        self.cubes = cubes
+        self.camera.position = players[player_id].position
+        self.player = Player(
+            players[player_id], players[player_id].rotation_h, players[player_id].rotation_v)
 
         while True:
 
+            players[player_id].position = self.camera.position
+            players[player_id].rotation_v = self.angle_v_p
+            players[player_id].rotation_h = self.angle_h_p
+
+            data = n.send(
+                {"player_id": player_id, "players": players, "cubes": self.cubes, "con": self.con}
+            )
+
+            players = data["players"]
+            if len(players) > 1:
+
+                for id, player in enumerate(players):
+                    if player_id != id:
+                        self.other_players.append(
+                            (Cube(player.position, .2, "bedrock"), player.rotation_h, player.rotation_v))
+
+            cubes = data["cubes"]
+            self.cubes = cubes
+            self.con = data["con"]
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -466,6 +556,7 @@ class Scene:
                         sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    self.con="add"
                     x, y = pygame.mouse.get_pos()
 
                     if self.scene == Scenes.game:
@@ -500,12 +591,22 @@ class Scene:
                             new_cube_position = intersection_cube.center + \
                                 face_offsets[closest_face_index]
                             # Create a new cube only if the cube will not colide with me
-                            
-                            if math.dist(new_cube_position ,self.camera.position) > CUBE_SIZE +3:
+
+                            if (math.dist(new_cube_position, self.camera.position) > CUBE_SIZE + 3
+                                and not any(
+                                    np.array_equal(new_cube_position, c.center)
+                                    for c in self.cubes
+                            )
+                                and new_cube_position[1] < 2
+                            ):
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
+                                # if self.selected_texture_index==0:
+                                #     new_cube.texture
+
+                                # Texture.
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
                                 self.mouse_button_down = False
@@ -521,10 +622,11 @@ class Scene:
                                     intersection_polygon, axis=0)+np.array([0, -CUBE_SIZE//2, 0])
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
                                 self.sound.pick.play()
+
                                 self.cubes.append(new_cube)
 
                             elif intersection_point is not None:
@@ -532,19 +634,20 @@ class Scene:
                                 new_cube_position[1] -= CUBE_SIZE//2
 
                                 new_cube = Cube(new_cube_position,
-                                                CUBE_SIZE, textures4["sand"])
-                                new_cube.texture = textures4[list(textures4.keys())[
-                                    self.selected_texture_index]]
+                                                CUBE_SIZE, Texture.sand)
+                                new_cube.texture = list(textures8.keys())[
+                                    self.selected_texture_index]
                                 self.sound.pick.play()
                                 self.cubes.append(new_cube)
 
                     if self.scene == Scenes.menu:
-                        if preview_button_rect.collidepoint((x, y)):
+                        if join_button_rect.collidepoint((x, y)):
                             self.sound.menu.stop()
                             self.sound.click.play()
                             self.scene = Scenes.game
                 # remove a cube using mouse button 3
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                    self.con="remove"
                     x, y = pygame.mouse.get_pos()
                     if self.scene == Scenes.game:
                         forward_vector = np.array([
@@ -560,7 +663,10 @@ class Scene:
                         )
 
                         if intersection_cube:
-                            self.cubes.remove(intersection_cube)
+                            for c in self.cubes:
+                                if np.array_equal(intersection_cube.center, c.center):
+                                    self.cubes.remove(c)
+                            # self.cubes.remove(intersection_cube)
                             self.sound.dig.set_volume(.5)
                             self.sound.dig.play()
 
